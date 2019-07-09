@@ -13,10 +13,8 @@ export class AppBrowser {
     @inject(Symbols.routeService) private readonly routeService: RouteService,
     @inject(Symbols.routes) private readonly routes: TRouteConfig[]
   ) {}
-  loadData = this.routeService.load
-  ensureComponentsReady = this.routeService.ensureComponentsReady
   load = async () => {
-    await this.ensureComponentsReady()
+    await this.routeService.ensureComponentsReady()
   }
   render: FC = () => {
     return <Router history={this.history}>{renderRoutes(this.routes)}</Router>
