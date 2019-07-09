@@ -25,11 +25,10 @@ export class AppSsr {
     )
     return this.scripts
   }
-  loadRoute = async () => {
-    const [data] = await Promise.all([
-      this.routeService.load(),
-      this.routeService.ensureComponentsReady(),
-    ])
+  loadData = this.routeService.load
+  ensureComponentsReady = this.routeService.ensureComponentsReady
+  load = async () => {
+    const [data] = await Promise.all([this.loadData(), this.ensureComponentsReady()])
     return data
   }
   render: FC = () => {
