@@ -10,24 +10,27 @@ import { getEntryAssetsScripts, getWebpackAssetsManifest } from "./webpack-asset
 @injectable()
 export class AppSsr {
   context: StaticRouterContext = {}
+  scripts: string = ""
   constructor(
     @inject(Symbols.routeService) private readonly routeService: RouteService,
     @inject(Symbols.routes) private readonly routes: TRouteConfig[],
     @inject(Symbols.config) private readonly config: TConfig,
     @inject(Symbols.url) private readonly url: URL
   ) {}
-  load = async () => {
-    console.log("SCRIPTS_URL", this.config.SCRIPTS_URL)
+  loadScripts = async () => {
     const manifest = await getWebpackAssetsManifest<any>(this.config.SCRIPTS_URL)
-    console.log("manifest", manifest)
-    const scripts = getEntryAssetsScripts(
+    this.scripts = getEntryAssetsScripts(
       this.config.SCRIPTS_URL,
       manifest.entrypoints[this.config.MANIFEST_ENTRYPOINT].js
     )
-    console.log(scripts)
-
-    await this.routeService.load()
-    await this.routeService.ensureComponentsReady()
+    return this.scripts
+  }
+  loadRoute = async () => {
+    const [data] = await Promise.all([
+      this.routeService.load(),
+      this.routeService.ensureComponentsReady(),
+    ])
+    return data
   }
   render: FC = () => {
     return (

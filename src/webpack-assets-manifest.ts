@@ -1,7 +1,7 @@
 type TJsEntrypoints = string[]
 type TJsEntrypointsRecord = { js: TJsEntrypoints }
 
-export const MANIFEST_PATH = "/manifest.json"
+export const MANIFEST_PATH = "manifest.json"
 
 export type TWebpackAssetsManifestJson<T extends string = ""> = Record<string, string> & {
   entrypoints: Record<T, TJsEntrypointsRecord>
