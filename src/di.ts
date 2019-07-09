@@ -1,7 +1,7 @@
 import { Container, interfaces } from "inversify"
 import { createContext, useContext } from "react"
 
-const DiContext = createContext({} as Container)
+export const DiContext = createContext({} as Container)
 export const DiContextProvider = DiContext.Provider
 export const useDiContainer = () => useContext(DiContext)
 
