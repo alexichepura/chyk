@@ -6,7 +6,7 @@ import { useDiContainer } from "./di"
 import { TLoadData, TRouteConfig } from "./route-service"
 import { Symbols } from "./symbols"
 
-export const useDataService = (): DataService => useDiContainer().get(DataService)
+export const useDataService = (): DataService => useDiContainer().get(Symbols.dataService)
 
 @injectable()
 export class DataService {
