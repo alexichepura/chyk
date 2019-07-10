@@ -5,7 +5,13 @@ import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { DataService } from "./data-service"
 import { Symbols } from "./symbols"
 
-export type TLoadData<T, M = {}> = (match: match<M>, container: Container) => Promise<T>
+export type TLoadData<T, M = {}> = (
+  match: match<M>,
+  container: Container,
+  options?: {
+    abortController?: AbortController
+  }
+) => Promise<T>
 
 export type TRouteConfig = RouteConfig & {
   loadData?: TLoadData<any, any>

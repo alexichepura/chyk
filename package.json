@@ -5,7 +5,13 @@
     "@types/node": "^12.0.12",
     "@types/react-dom": "^16.8.4",
     "@types/react-router": "^5.0.3",
-    "@types/react-router-config": "^5.0.0"
+    "@types/react-router-config": "^5.0.0",
+    "inversify": ">=5.0.1",
+    "react": ">=16.8",
+    "react-dom": ">=16.8",
+    "react-router-config": ">=5.0.1",
+    "reflect-metadata": ">=0.1.13",
+    "tslib": "^1.10.0"
   },
   "files": [
     "dist/*(*.ts|*.js)",
@@ -25,12 +31,12 @@
     "tslib": "^1.10.0"
   },
   "scripts": {
-    "clean": "rm -r dist",
     "build": "tsc",
+    "clean": "rm -r dist",
     "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz"
   },
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.0.8"
+  "version": "0.0.9"
 }
