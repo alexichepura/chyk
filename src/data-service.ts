@@ -11,8 +11,8 @@ export const useDataService = (): DataService => useDiContainer().get(Symbols.da
 @injectable()
 export class DataService {
   ssr_data: any | null
-  constructor(@inject(Symbols.config) config: TConfig) {
-    this.ssr_data = config.IS_BROWSER ? { ...(window as any).ssr_data } : null
+  constructor(@inject(Symbols.config) private readonly config: TConfig) {
+    this.ssr_data = this.config.IS_BROWSER ? { ...(window as any).ssr_data } : null
   }
 
   set(ssr_data: any) {
@@ -24,7 +24,7 @@ export class DataService {
     }
     const data = this.ssr_data && this.ssr_data[dataKey]
     if (data) {
-      if (process.env.IS_BROWSER) {
+      if (this.config.IS_BROWSER) {
         this.ssr_data[dataKey] = null // cleanup cached data to ensure one-time usage
       }
       return data
