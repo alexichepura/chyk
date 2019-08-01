@@ -1,9 +1,10 @@
 import { Container, interfaces } from "inversify"
-import { createContext, useContext } from "react"
+import { useDiContainer } from "./di-context"
+import { Symbols } from "./symbols"
 
-export const DiContext = createContext({} as Container)
-export const DiContextProvider = DiContext.Provider
-export const useDiContainer = () => useContext(DiContext)
+export const useUrl = () => {
+  return useDiContainer().get(Symbols.url)
+}
 
 export const bind_as_singletone = (container: Container) => (
   singletone_service: interfaces.ServiceIdentifier<any>
