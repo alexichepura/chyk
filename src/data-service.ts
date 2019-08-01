@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify"
 import { DependencyList, useEffect, useMemo, useState } from "react"
 import { match } from "react-router"
 import { TConfig } from "./config"
-import { useDiContainer } from "./di"
+import { useDiContainer } from "./di-context"
 import { TRouteConfig } from "./route-service"
 import { Symbols } from "./symbols"
 
