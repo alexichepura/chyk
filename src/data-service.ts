@@ -72,7 +72,9 @@ export function useRouteData<D = any>({
     () => (config.IS_BROWSER ? new AbortController() : abort_controller_mock),
     deps
   )
-
+  if (!config.IS_BROWSER) {
+    set && set(data)
+  }
   useEffect(() => {
     if (data) {
       set && set(data)

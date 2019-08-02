@@ -11,7 +11,8 @@
     "react-dom": ">=16.8",
     "react-router-config": ">=5.0.1",
     "reflect-metadata": ">=0.1.13",
-    "tslib": "^1.10.0"
+    "tslib": "^1.10.0",
+    "typescript": "^3.5.3"
   },
   "files": [
     "dist/*(*.ts|*.js)",
