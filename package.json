@@ -1,17 +1,21 @@
 {
   "author": "Palessit",
   "devDependencies": {
-    "@types/history": "^4.7.2",
-    "@types/node": "^12.0.12",
-    "@types/react-dom": "^16.8.4",
+    "@types/history": "^4.7.3",
+    "@types/node": "^12.7.4",
+    "@types/react-dom": "^16.9.0",
     "@types/react-router": "^5.0.3",
     "@types/react-router-config": "^5.0.0",
+    "@types/webpack": "^4.39.1",
+    "@types/webpack-dev-server": "^3.1.7",
     "inversify": ">=5.0.1",
-    "react": ">=16.8",
-    "react-dom": ">=16.8",
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0",
     "react-router-config": ">=5.0.1",
     "reflect-metadata": ">=0.1.13",
-    "tslib": "^1.10.0"
+    "ts-node": "^8.3.0",
+    "tslib": "^1.10.0",
+    "webpack-dev-server": "^3.8.0"
   },
   "files": [
     "dist/*(*.ts|*.js)",
@@ -33,7 +37,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -r dist",
-    "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz"
+    "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz",
+    "example": "TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config ./example/webpack.config.ts"
   },
   "sideEffects": false,
   "types": "dist/index.d.ts",
