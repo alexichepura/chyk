@@ -8,6 +8,7 @@
     "@types/react-router-config": "^5.0.0",
     "@types/webpack": "^4.39.1",
     "@types/webpack-dev-server": "^3.1.7",
+    "dotenv": "^8.1.0",
     "inversify": ">=5.0.1",
     "react": ">=16.9.0",
     "react-dom": ">=16.9.0",
@@ -16,6 +17,7 @@
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
     "tslib": "^1.10.0",
+    "typescript": "^3.6.3",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.8",
     "webpack-dev-server": "^3.8.0"
@@ -41,7 +43,7 @@
     "build": "tsc",
     "clean": "rm -r dist",
     "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz",
-    "example": "TS_NODE_PROJECT='./example/tsconfig.json' webpack-dev-server --config ./example/webpack.config.ts"
+    "example": "TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config example/webpack.config.ts"
   },
   "sideEffects": false,
   "types": "dist/index.d.ts",
