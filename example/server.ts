@@ -1,17 +1,21 @@
 require("dotenv").config()
 const { WDS_PORT } = process.env
-import { createServer, RequestListener } from "http"
+import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 import { Chyk } from "../src/chyk"
 import { Layout, routes } from "./app"
 import { delay } from "./db"
 
-const requestHandler: RequestListener = (request, response) => {
-  const pathname: string = request.url || ""
-  const url = new URL(pathname, "http://localhost")
-  const chyk = new Chyk({ url, routes: routes })
-  delay().then(async () => {
+const port = 3000
+const server = createServer()
+server.on("request", async (request, response) => {
+  try {
+    const pathname: string = request.url || ""
+    const url = new URL(pathname, "http://localhost")
+
+    const chyk = new Chyk({ url, routes: routes })
+    await delay()
     await chyk.loadData()
 
     const Component = chyk.render
@@ -19,11 +23,12 @@ const requestHandler: RequestListener = (request, response) => {
 
     response.statusCode = chyk.statusCode
     response.end(template({ html }))
-  })
-}
+  } catch (e) {
+    console.log(e)
+    response.end(e)
+  }
+})
 
-const port = 3000
-const server = createServer(requestHandler)
 server.listen(port, () => {
   console.log(`server is listening on ${port}`)
 })

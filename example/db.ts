@@ -23,4 +23,9 @@ class DbClient {
 }
 export const apiClient = new DbClient()
 
-export const delay = (ms: number = 10): Promise<void> => new Promise(() => setTimeout(() => {}, ms))
+export const delay = (ms: number = 10): Promise<void> =>
+  new Promise(resolve =>
+    setTimeout(() => {
+      resolve()
+    }, ms)
+  )

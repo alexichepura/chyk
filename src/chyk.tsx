@@ -2,6 +2,7 @@ import { createBrowserHistory, History } from "history"
 import React, { FC } from "react"
 import { Router, StaticRouter, StaticRouterContext } from "react-router"
 import { renderRoutes } from "react-router-config"
+import { ChykContext } from "./hooks"
 import { ensure_component_ready, loadBranchDataObject, TRouteConfig } from "./match"
 import { TDataNullable } from "./useRouteData"
 
@@ -36,15 +37,17 @@ export class Chyk {
   }
 
   render: FC = () => {
-    if (this.history) {
-      return <Router history={this.history}>{renderRoutes(this.routes)}</Router>
-    } else {
-      return (
-        <StaticRouter location={this.url.pathname} context={this.staticRouterContext}>
-          {renderRoutes(this.routes)}
-        </StaticRouter>
-      )
-    }
+    return (
+      <ChykContext.Provider value={this}>
+        {this.history ? (
+          <Router history={this.history}>{renderRoutes(this.routes)}</Router>
+        ) : (
+          <StaticRouter location={this.url.pathname} context={this.staticRouterContext}>
+            {renderRoutes(this.routes)}
+          </StaticRouter>
+        )}
+      </ChykContext.Provider>
+    )
   }
 
   getData<D>(dataKey: string | undefined): TDataNullable<D> {
