@@ -24,11 +24,6 @@ const config: Configuration = {
     publicPath: PUBLIC_OUTPUT_PATH,
     compress: false,
     port: Number(WDS_PORT),
-    before: function(app, _server) {
-      app.get("/", function(_req, res) {
-        res.send("hello")
-      })
-    },
   },
   devtool: "cheap-module-eval-source-map",
   mode: "development",

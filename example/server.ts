@@ -1,5 +1,5 @@
 require("dotenv").config()
-const { WDS_PORT } = process.env
+const { WDS_PORT, PORT } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
@@ -7,7 +7,7 @@ import { Chyk } from "../src/chyk"
 import { Layout, routes } from "./app"
 import { delay } from "./db"
 
-const port = 3000
+const port = (PORT && Number(PORT)) || 3000
 const server = createServer()
 server.on("request", async (request, response) => {
   try {
@@ -47,7 +47,7 @@ const template = (props: TTemplateProps) => `
 </head>
 <body>
   <div id="app">${props.html}</div>
-  <script src="${WDS_PORT ? `http://localhost:${WDS_PORT}/dist/app.js` : "/app.js"}"></script>
+  <script src="${WDS_PORT ? `http://localhost:${WDS_PORT}/dist/example.js` : "/app.js"}"></script>
 </body>
 </html>
 `

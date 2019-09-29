@@ -45,8 +45,8 @@
     "build": "tsc",
     "clean": "rm -r dist",
     "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz",
-    "example:wds": "TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config example/webpack.config.ts",
-    "example:server": "ts-node-dev --respawn --transpileOnly example/server.ts"
+    "example:wds": "cd example && TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config webpack.config.ts",
+    "example:server": "cd example && ts-node-dev --respawn --transpileOnly server.ts"
   },
   "sideEffects": false,
   "types": "dist/index.d.ts",
