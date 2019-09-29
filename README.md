@@ -4,7 +4,7 @@
 
 ---
 
-Chyk is a framework to build universal SPAs on TypeScript, React and InversifyJS.
+Chyk is a framework to build universal SPAs on TypeScript, React.
 
 ## Installing
 

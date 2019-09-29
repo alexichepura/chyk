@@ -16,7 +16,7 @@ const PUBLIC_OUTPUT_PATH = WDS_PORT ? `http://localhost:${WDS_PORT}/dist/` : "/d
 
 const config: Configuration = {
   entry: {
-    example: EXAMPLE_DIR + "/example.tsx",
+    example: EXAMPLE_DIR + "/app.tsx",
   },
   devServer: {
     contentBase: false,

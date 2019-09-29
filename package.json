@@ -16,6 +16,7 @@
     "reflect-metadata": ">=0.1.13",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
+    "ts-node-dev": "^1.0.0-pre.43",
     "tslib": "^1.10.0",
     "typescript": "^3.6.3",
     "webpack": "^4.39.3",
@@ -32,7 +33,6 @@
   "main": "dist/index.js",
   "name": "chyk",
   "peerDependencies": {
-    "inversify": ">=5.0.1",
     "react": ">=16.8",
     "react-dom": ">=16.8",
     "react-router-config": ">=5.0.1",
@@ -43,7 +43,8 @@
     "build": "tsc",
     "clean": "rm -r dist",
     "pack:dry": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz",
-    "example": "TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config example/webpack.config.ts"
+    "example:wds": "TS_NODE_PROJECT=\"tsconfig.json\" webpack-dev-server --config example/webpack.config.ts",
+    "example:server": "ts-node-dev --respawn --transpileOnly example/server.ts"
   },
   "sideEffects": false,
   "types": "dist/index.d.ts",
