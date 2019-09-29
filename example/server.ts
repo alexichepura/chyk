@@ -8,7 +8,8 @@ import { Layout, routes } from "./app"
 import { delay } from "./db"
 
 const requestHandler: RequestListener = (request, response) => {
-  const url = new URL(request.url || "")
+  const pathname: string = request.url || ""
+  const url = new URL(pathname, "http://localhost")
   const chyk = new Chyk({ url, routes: routes })
   delay().then(async () => {
     await chyk.loadData()
