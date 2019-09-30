@@ -1,6 +1,7 @@
 import React, { FC } from "react"
 import { RouteComponentProps } from "react-router"
 import { renderRoutes } from "react-router-config"
+import { Link } from "react-router-dom"
 import { TLoadData, TRouteConfig } from "../src/match"
 import { useRouteData } from "../src/useRouteData"
 import { DbClient, TArticle } from "./db"
@@ -11,6 +12,7 @@ type TAppLoadData<T, M = any> = TLoadData<T, M, { apiClient: DbClient }>
 type TLayoutProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
 export type TLayoutData = {
   year: number
+  articles: TArticle[]
 }
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
@@ -19,7 +21,17 @@ export const Layout: FC<TLayoutProps> = props => {
     <div>
       <header>{data.year}</header>
       <main>{renderRoutes(props.route && props.route.routes)}</main>
-      <footer></footer>
+      <footer>
+        <h2>Footer</h2>
+        <h3>Articles</h3>
+        {data.articles.map(a => (
+          <div key={a.slug}>
+            <Link to={a.slug} target="_self">
+              {a.title}
+            </Link>
+          </div>
+        ))}
+      </footer>
     </div>
   )
 }

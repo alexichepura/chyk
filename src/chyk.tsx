@@ -61,11 +61,11 @@ export class Chyk {
     )
   }
 
-  tryHydrate = (el: HTMLElement) => {
+  tryHydrate = (el: HTMLElement | null) => {
     const Component = this.render
     const renderMethod = el && el.childNodes.length === 0 ? render : hydrate
     renderMethod(<Component />, el)
-    delete this.data
+    this.data = null
   }
 
   getData<D>(dataKey: string): TLoadDataResult<D> {
