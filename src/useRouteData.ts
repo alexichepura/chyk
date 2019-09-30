@@ -34,7 +34,7 @@ export function useRouteData<D = any>({
     throw new Error("route.dataKey required")
   }
   const chyk = useChykContext()
-  const { data, statusCode } = chyk.getData<D>(dataKey)
+  const { data, statusCode = 200 } = chyk.getData<D>(dataKey)
   const [state_data, state_set] = useState<D | undefined>(data)
   const [loading, set_loading] = useState<boolean>(false)
   const [error, set_error] = useState<Error | null>(null)
