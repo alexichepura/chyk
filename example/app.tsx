@@ -6,7 +6,8 @@ import { TLoadData, TRouteConfig } from "../src/match"
 import { useRouteData } from "../src/useRouteData"
 import { DbClient, TArticle } from "./db"
 
-type TAppLoadData<T, M = any> = TLoadData<T, M, { apiClient: DbClient }>
+export type TChykDefaultProps = { apiClient: DbClient }
+type TAppLoadData<T, M = any> = TLoadData<T, M, TChykDefaultProps>
 
 // LAYOUT
 type TLayoutProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
@@ -20,7 +21,10 @@ export const Layout: FC<TLayoutProps> = props => {
   if (!data) return null
   return (
     <div>
-      <header>{data.year}</header>
+      <header>
+        <h2>Header. Year: {data.year}</h2>
+        <Link to={"/"}>home</Link>
+      </header>
       <main>{renderRoutes(props.route && props.route.routes)}</main>
       <footer>
         <h2>Footer</h2>
@@ -50,7 +54,7 @@ export const Home: FC<THomeProps> = props => {
 
   return (
     <div>
-      <h1>Home</h1>
+      <h1>Page Home</h1>
       <div>
         <h2>Articles</h2>
         <div>
@@ -82,7 +86,7 @@ export const Article: FC<TArticleProps> = props => {
   if (!data || !data.article) return null
   return (
     <div>
-      <h1>{data.article.title}</h1>
+      <h1>Page {data.article.title}</h1>
     </div>
   )
 }

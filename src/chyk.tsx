@@ -4,18 +4,14 @@ import { hydrate, render } from "react-dom"
 import { Router, StaticRouter, StaticRouterContext } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { ChykContext } from "./hooks"
-import {
-  ensure_component_ready,
-  loadBranchDataObject,
-  TLoadDataResult,
-  TRouteConfig,
-} from "./match"
+import { ensure_component_ready, loadBranchDataObject, TLoadDataResult, TRouteConfig } from "./match"
 
 type TChykProps = {
   url: URL
   routes: TRouteConfig[]
   browser?: boolean
   data?: any
+  defaultProps?: any
 }
 
 export class Chyk {
@@ -23,6 +19,7 @@ export class Chyk {
   url: URL
   routes: TRouteConfig[]
   data: any
+  defaultProps: any
   staticRouterContext: StaticRouterContext = {}
   history: History | null
 
@@ -31,11 +28,12 @@ export class Chyk {
     this.routes = props.routes
     this.data = props.data
     this.history = props.browser ? createBrowserHistory() : null
+    this.defaultProps = props.defaultProps
   }
 
   loadData = async (props?: any) => {
     const [data] = await Promise.all([
-      loadBranchDataObject(this, this.url.pathname, this.routes, props),
+      loadBranchDataObject(this, this.url.pathname, this.routes, {...this.defaultProps, ...props}),
       ensure_component_ready(this.url.pathname, this.routes),
     ])
     this.data = data

@@ -33,7 +33,7 @@ export function useRouteData<D = any>({
     throw new Error("route.dataKey required")
   }
   const chyk = useChyk()
-  const data = chyk.getData<D>(dataKey)
+  const data = chyk.data && chyk.getData<D>(dataKey)
   const [state_data, state_set] = useState<D | undefined>(data)
   const [loading, set_loading] = useState<boolean>(false)
   const [error, set_error] = useState<Error | null>(null)
@@ -47,7 +47,7 @@ export function useRouteData<D = any>({
       return
     }
     set_loading(true)
-    loadData({ chyk, match, abortController, props })
+    loadData({ chyk, match, abortController, props: { ...chyk.defaultProps, ...props } })
       .then((loaded_data: any) => {
         state_set(loaded_data)
         set_loading(false)

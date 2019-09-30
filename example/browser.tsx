@@ -8,8 +8,9 @@ const init = async () => {
     routes,
     data: (window as any).ssr_data,
     browser: true,
+    defaultProps: { apiClient },
   })
-  await chyk.tryLoadData({ apiClient })
+  await chyk.tryLoadData()
   chyk.tryHydrate(document.getElementById("app"))
 }
 

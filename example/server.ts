@@ -14,8 +14,8 @@ server.on("request", async (request, response) => {
     const pathname: string = request.url || ""
     const url = new URL(pathname, "http://localhost")
 
-    const chyk = new Chyk({ url, routes: routes })
-    await chyk.loadData({ apiClient })
+    const chyk = new Chyk({ url, routes, defaultProps: { apiClient } })
+    await chyk.loadData()
 
     const Component = chyk.render
     const html = renderToString(createElement(Component))
