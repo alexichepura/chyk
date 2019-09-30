@@ -7,6 +7,7 @@ const init = async () => {
     url: new URL(window.location.href),
     routes,
     data: (window as any).ssr_data,
+    browser: true,
   })
   await chyk.tryLoadData({ apiClient })
   chyk.tryHydrate(document.getElementById("app"))

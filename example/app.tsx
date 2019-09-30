@@ -16,6 +16,7 @@ export type TLayoutData = {
 }
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
+  // useLocation()
   if (!data) return null
   return (
     <div>
@@ -26,9 +27,7 @@ export const Layout: FC<TLayoutProps> = props => {
         <h3>Articles</h3>
         {data.articles.map(a => (
           <div key={a.slug}>
-            <Link to={a.slug} target="_self">
-              {a.title}
-            </Link>
+            <Link to={"/" + a.slug}>{a.title}</Link>
           </div>
         ))}
       </footer>
