@@ -3,7 +3,9 @@ import { RouteComponentProps } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { TLoadData, TRouteConfig } from "../src/match"
 import { useRouteData } from "../src/useRouteData"
-import { apiClient, TArticle } from "./db"
+import { DbClient, TArticle } from "./db"
+
+type TAppLoadData<T, M = any> = TLoadData<T, M, { apiClient: DbClient }>
 
 // LAYOUT
 type TLayoutProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
@@ -20,9 +22,9 @@ export const Layout: FC<TLayoutProps> = props => {
     </div>
   )
 }
-const layoutLoader: TLoadData<TLayoutData> = async () => {
+const layoutLoader: TAppLoadData<TLayoutData> = async ({ props: { apiClient } }) => {
   const year = await apiClient.getYear()
-  return { data: { year } }
+  return { year }
 }
 
 // HOME
@@ -48,9 +50,9 @@ export const Home: FC<THomeProps> = props => {
     </div>
   )
 }
-const homeLoader: TLoadData<THomeData> = async () => {
+const homeLoader: TAppLoadData<THomeData> = async ({ props: { apiClient } }) => {
   const articles = await apiClient.getArticles()
-  return { data: { articles } }
+  return { articles }
 }
 
 // ARTICLE
@@ -72,9 +74,16 @@ export const Article: FC<TArticleProps> = props => {
     </div>
   )
 }
-const articleLoader: TLoadData<TArticleData, TArticleMatchParams> = async ({ match }) => {
+const articleLoader: TAppLoadData<TArticleData, TArticleMatchParams> = async ({
+  match,
+  chyk,
+  props: { apiClient },
+}) => {
   const article = await apiClient.getArticle(match.params.slug)
-  return { data: { article }, statusCode: article ? 200 : 404 }
+  if (!article) {
+    chyk.statusCode = 404
+  }
+  return { article }
 }
 
 // NOT FOUND

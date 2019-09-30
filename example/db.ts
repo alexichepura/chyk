@@ -7,16 +7,19 @@ const articles: TArticle[] = [
   { slug: "article2", title: "Article 2" },
 ]
 
-class DbClient {
+export class DbClient {
   getYear = async () => {
+    console.log("getYear")
     await delay()
     return 2020
   }
   getArticle = async (slug: string) => {
+    console.log("getArticle")
     await delay()
     return articles.find(article => article.slug === slug)
   }
   getArticles = async () => {
+    console.log("getArticles")
     await delay()
     return articles
   }

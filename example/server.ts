@@ -5,7 +5,7 @@ import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 import { Chyk } from "../src/chyk"
 import { routes } from "./app"
-import { delay } from "./db"
+import { apiClient } from "./db"
 
 const port = (PORT && Number(PORT)) || 3000
 const server = createServer()
@@ -15,8 +15,7 @@ server.on("request", async (request, response) => {
     const url = new URL(pathname, "http://localhost")
 
     const chyk = new Chyk({ url, routes: routes })
-    await delay()
-    await chyk.loadData()
+    await chyk.loadData({ apiClient })
 
     const Component = chyk.render
     const html = renderToString(createElement(Component))

@@ -1,6 +1,6 @@
 import { DependencyList, useEffect, useMemo, useState } from "react"
 import { match } from "react-router"
-import { useChykContext } from "./hooks"
+import { useChyk } from "./hooks"
 import { TRouteConfig } from "./match"
 
 type TUseRouteDataProps = {
@@ -15,7 +15,6 @@ type TUseRouteDataReturn<D = any> = {
   loading: boolean
   error: Error | null
   abortController: AbortController
-  statusCode: number
 }
 // type TUseRouteData<D = any> = (props: TUseRouteDataProps) => TUseRouteDataReturn<D>
 // export function useRouteData<D = any>(props: TUseRouteDataProps): TUseRouteDataReturn<D>
@@ -33,8 +32,8 @@ export function useRouteData<D = any>({
   if (!dataKey) {
     throw new Error("route.dataKey required")
   }
-  const chyk = useChykContext()
-  const { data, statusCode = 200 } = chyk.getData<D>(dataKey)
+  const chyk = useChyk()
+  const data = chyk.getData<D>(dataKey)
   const [state_data, state_set] = useState<D | undefined>(data)
   const [loading, set_loading] = useState<boolean>(false)
   const [error, set_error] = useState<Error | null>(null)
@@ -48,7 +47,7 @@ export function useRouteData<D = any>({
       return
     }
     set_loading(true)
-    loadData({ match, abortController, props })
+    loadData({ chyk, match, abortController, props })
       .then((loaded_data: any) => {
         state_set(loaded_data)
         set_loading(false)
@@ -61,7 +60,7 @@ export function useRouteData<D = any>({
     }
   }, deps)
 
-  return { data: data || state_data, loading, error, abortController, statusCode }
+  return { data: data || state_data, loading, error, abortController }
 }
 
 const abort_controller_mock: AbortController = {} as AbortController

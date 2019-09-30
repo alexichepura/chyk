@@ -34,7 +34,7 @@ export class Chyk {
 
   loadData = async (props?: any) => {
     const [data] = await Promise.all([
-      loadBranchDataObject(this.url.pathname, this.routes, props),
+      loadBranchDataObject(this, this.url.pathname, this.routes, props),
       ensure_component_ready(this.url.pathname, this.routes),
     ])
     this.data = data
