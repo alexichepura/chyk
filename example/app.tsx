@@ -19,12 +19,13 @@ export const Layout: FC<TLayoutProps> = props => {
     <div>
       <header>{data.year}</header>
       <main>{renderRoutes(props.route && props.route.routes)}</main>
+      <footer></footer>
     </div>
   )
 }
 const layoutLoader: TAppLoadData<TLayoutData> = async ({ props: { apiClient } }) => {
-  const year = await apiClient.getYear()
-  return { year }
+  const [year, articles] = await Promise.all([apiClient.getYear(), apiClient.getArticles()])
+  return { year, articles }
 }
 
 // HOME
@@ -105,7 +106,7 @@ export const routes: TRouteConfig[] = [
       {
         path: "/404",
         component: NotFound as FC,
-        loadData: () => Promise.resolve({ statusCode: 404 }),
+        loadData: async ({ chyk }) => (chyk.statusCode = 404),
       },
       {
         path: "/:slug",
@@ -115,7 +116,7 @@ export const routes: TRouteConfig[] = [
       },
       {
         component: NotFound as FC,
-        loadData: () => Promise.resolve({ statusCode: 404 }),
+        loadData: async ({ chyk }) => (chyk.statusCode = 404),
       },
     ],
   },

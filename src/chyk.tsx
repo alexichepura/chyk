@@ -1,5 +1,6 @@
 import { createBrowserHistory, History } from "history"
 import React, { FC } from "react"
+import { hydrate, render } from "react-dom"
 import { Router, StaticRouter, StaticRouterContext } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { ChykContext } from "./hooks"
@@ -40,6 +41,12 @@ export class Chyk {
     this.data = data
   }
 
+  tryLoadData = async (props?: any) => {
+    if (!this.data) {
+      await this.loadData(props)
+    }
+  }
+
   render: FC = () => {
     return (
       <ChykContext.Provider value={this}>
@@ -52,6 +59,13 @@ export class Chyk {
         )}
       </ChykContext.Provider>
     )
+  }
+
+  tryHydrate = (el: HTMLElement) => {
+    const Component = this.render
+    const renderMethod = el && el.childNodes.length === 0 ? render : hydrate
+    renderMethod(<Component />, el)
+    delete this.data
   }
 
   getData<D>(dataKey: string): TLoadDataResult<D> {
