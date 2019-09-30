@@ -11,7 +11,9 @@ const init = async () => {
     routes,
     data: (window as any).ssr_data,
   })
-  await chyk.loadData({ apiClient })
+  if (!chyk.data) {
+    await chyk.loadData({ apiClient })
+  }
   const Component = chyk.render
 
   const renderMethod = appNode && appNode.childNodes.length === 0 ? render : hydrate
