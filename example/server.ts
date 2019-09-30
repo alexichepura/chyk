@@ -4,7 +4,7 @@ import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 import { Chyk } from "../src/chyk"
-import { Layout, routes } from "./app"
+import { routes } from "./app"
 import { delay } from "./db"
 
 const port = (PORT && Number(PORT)) || 3000
@@ -19,10 +19,10 @@ server.on("request", async (request, response) => {
     await chyk.loadData()
 
     const Component = chyk.render
-    const html = renderToString(createElement(Component, null, Layout))
+    const html = renderToString(createElement(Component))
 
     response.statusCode = chyk.statusCode
-    response.end(template({ html }))
+    response.end(template({ html, ssr_data: JSON.stringify(chyk.data) }))
   } catch (e) {
     console.log(e)
     response.end(e)
@@ -35,6 +35,7 @@ server.listen(port, () => {
 
 type TTemplateProps = {
   html: string
+  ssr_data: string
 }
 const template = (props: TTemplateProps) => `
 <!DOCTYPE html>
@@ -47,7 +48,10 @@ const template = (props: TTemplateProps) => `
 </head>
 <body>
   <div id="app">${props.html}</div>
-  <script src="${WDS_PORT ? `http://localhost:${WDS_PORT}/dist/example.js` : "/app.js"}"></script>
+  <script>window.ssr_data = ${props.ssr_data}</script>
+  <script src="${
+    WDS_PORT ? `http://localhost:${WDS_PORT}/dist/browser.js` : "/browser.js"
+  }"></script>
 </body>
 </html>
 `
