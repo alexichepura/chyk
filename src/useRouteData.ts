@@ -11,10 +11,11 @@ type TUseRouteDataProps = {
 }
 export type TDataNullable<D = any> = null | D
 type TUseRouteDataReturn<D = any> = {
-  data: TDataNullable<D>
+  data: D | undefined
   loading: boolean
   error: Error | null
   abortController: AbortController
+  statusCode: number
 }
 // type TUseRouteData<D = any> = (props: TUseRouteDataProps) => TUseRouteDataReturn<D>
 // export function useRouteData<D = any>(props: TUseRouteDataProps): TUseRouteDataReturn<D>
@@ -33,8 +34,8 @@ export function useRouteData<D = any>({
     throw new Error("route.dataKey required")
   }
   const chyk = useChykContext()
-  const data = chyk.getData<D>(route.dataKey)
-  const [state_data, state_set] = useState<TDataNullable<D>>(data)
+  const { data, statusCode } = chyk.getData<D>(dataKey)
+  const [state_data, state_set] = useState<D | undefined>(data)
   const [loading, set_loading] = useState<boolean>(false)
   const [error, set_error] = useState<Error | null>(null)
   const abortController = useMemo(
@@ -60,7 +61,7 @@ export function useRouteData<D = any>({
     }
   }, deps)
 
-  return { data: data || state_data, loading, error, abortController }
+  return { data: data || state_data, loading, error, abortController, statusCode }
 }
 
 const abort_controller_mock: AbortController = {} as AbortController

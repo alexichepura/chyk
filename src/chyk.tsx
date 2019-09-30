@@ -3,8 +3,12 @@ import React, { FC } from "react"
 import { Router, StaticRouter, StaticRouterContext } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { ChykContext } from "./hooks"
-import { ensure_component_ready, loadBranchDataObject, TRouteConfig } from "./match"
-import { TDataNullable } from "./useRouteData"
+import {
+  ensure_component_ready,
+  loadBranchDataObject,
+  TLoadDataResult,
+  TRouteConfig,
+} from "./match"
 
 type TChykProps = {
   url: URL
@@ -50,17 +54,7 @@ export class Chyk {
     )
   }
 
-  getData<D>(dataKey: string | undefined): TDataNullable<D> {
-    if (!dataKey) {
-      return null
-    }
-    const data = this.data && this.data[dataKey]
-    if (data) {
-      if (this.history) {
-        this.data[dataKey] = null // cleanup cached data to ensure one-time usage
-      }
-      return data
-    }
-    return null
+  getData<D>(dataKey: string): TLoadDataResult<D> {
+    return this.data[dataKey]
   }
 }

@@ -33,6 +33,7 @@ export type THomeData = {
 export const Home: FC<THomeProps> = props => {
   const { data } = useRouteData<THomeData>(props)
   if (!data) return null
+
   return (
     <div>
       <h1>Home</h1>

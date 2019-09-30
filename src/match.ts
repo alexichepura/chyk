@@ -7,7 +7,7 @@ type TLoadDataProps<M> = {
   abortController?: AbortController
   props: any
 }
-type TLoadDataResult<D> = {
+export type TLoadDataResult<D = any> = {
   data?: D
   statusCode?: number
 }
@@ -21,10 +21,14 @@ export type TRouteConfig = RouteConfig & {
 
 type TPromiseConfig = {
   dataKey: string
-  promise: Promise<any>
+  promise: Promise<{ data: any; statusCode: number }>
 }
 
-export const loadBranchDataObject = async (url: string, routes: TRouteConfig[], props: any) => {
+export const loadBranchDataObject = async (
+  url: string,
+  routes: TRouteConfig[],
+  props: any
+): Promise<TLoadDataResult> => {
   const branch = matchRoutes(routes, url)
   const promisesConfig: TPromiseConfig[] = branch
     .map(
@@ -32,9 +36,7 @@ export const loadBranchDataObject = async (url: string, routes: TRouteConfig[], 
         return route.loadData
           ? {
               dataKey: route.dataKey,
-              promise: route
-                .loadData({ match, props })
-                .then((res: any) => (res && res.data ? res.data : res)),
+              promise: route.loadData({ match, props }),
             }
           : (Promise.resolve(null) as any)
       }
@@ -47,7 +49,7 @@ export const loadBranchDataObject = async (url: string, routes: TRouteConfig[], 
       prev[promisesConfig[index].dataKey] = current
       return prev
     },
-    {} as Record<string, any>
+    {} as Record<string, TLoadDataResult>
   )
   return resultsObject
 }
