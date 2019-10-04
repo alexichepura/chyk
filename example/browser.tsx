@@ -10,6 +10,7 @@ const init = async () => {
     browser: true,
     defaultProps: { apiClient },
   })
+  chyk.statusCode = (window as any).ssr_statusCode
   await chyk.tryLoadData()
   chyk.tryHydrate(document.getElementById("app"))
 }

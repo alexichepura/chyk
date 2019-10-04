@@ -2,6 +2,7 @@ import React, { FC } from "react"
 import { RouteComponentProps } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { Link } from "react-router-dom"
+import { useChyk } from "../src"
 import { TLoadData, TRouteConfig } from "../src/match"
 import { useRouteData } from "../src/useRouteData"
 import { DbClient, TArticle } from "./db"
@@ -19,6 +20,7 @@ export type TLayoutData = {
 }
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
+  const chyk = useChyk()
   if (!data) return null
   return (
     <div>
@@ -33,12 +35,15 @@ export const Layout: FC<TLayoutProps> = props => {
           404
         </Link>
       </header>
-      <main>{renderRoutes(props.route && props.route.routes)}</main>
+      <main>
+        {chyk.statusCode === 404 ? <NotFound /> : renderRoutes(props.route && props.route.routes)}
+      </main>
       <footer>&copy; {data.year}</footer>
     </div>
   )
 }
 const layoutLoader: TAppLoadData<TLayoutData> = async ({ props: { apiClient } }) => {
+  console.log("layoutLoader")
   const [year, articles] = await Promise.all([apiClient.getYear(), apiClient.getArticles()])
   return { year, articles }
 }
@@ -67,6 +72,7 @@ export const Home: FC<THomeProps> = props => {
   )
 }
 const homeLoader: TAppLoadData<THomeData> = async ({ props: { apiClient } }) => {
+  console.log("homeLoader")
   const articles = await apiClient.getArticles()
   return { articles }
 }
@@ -96,6 +102,7 @@ const articleLoader: TAppLoadData<TArticleData, TArticleMatchParams> = async ({
   chyk,
   props: { apiClient },
 }) => {
+  console.log("articleLoader")
   const article = await apiClient.getArticle(match.params.slug)
   if (!article) {
     chyk.statusCode = 404
@@ -123,11 +130,11 @@ export const routes: TRouteConfig[] = [
         dataKey: "home",
         loadData: homeLoader,
       },
-      {
-        path: "/404",
-        component: NotFound as FC,
-        loadData: async ({ chyk }) => (chyk.statusCode = 404),
-      },
+      // {
+      //   path: "/404",
+      //   component: NotFound as FC,
+      //   loadData: async ({ chyk }) => (chyk.statusCode = 404),
+      // },
       {
         path: "/:slug",
         component: Article as FC,

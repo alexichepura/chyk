@@ -36,6 +36,13 @@ export class Chyk {
     this.defaultProps = props.defaultProps
   }
 
+  // get ssr_ctx() {
+  //   return {
+  //     statusCode: this.statusCode,
+  //     data: this.data,
+  //   }
+  // }
+
   loadData = async (props?: any) => {
     const [data] = await Promise.all([
       loadBranchDataObject(this, this.url.pathname, this.routes, {

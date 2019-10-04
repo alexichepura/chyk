@@ -21,7 +21,9 @@ server.on("request", async (request, response) => {
     const html = renderToString(createElement(Component))
 
     response.statusCode = chyk.statusCode
-    response.end(template({ html, ssr_data: JSON.stringify(chyk.data) }))
+    response.end(
+      template({ html, ssr_data: JSON.stringify(chyk.data), ssr_statusCode: chyk.statusCode })
+    )
   } catch (e) {
     console.log(e)
     response.end(e)
@@ -35,6 +37,7 @@ server.listen(port, () => {
 type TTemplateProps = {
   html: string
   ssr_data: string
+  ssr_statusCode: number
 }
 const template = (props: TTemplateProps) => `
 <!DOCTYPE html>
@@ -48,6 +51,7 @@ const template = (props: TTemplateProps) => `
 <body>
   <div id="app">${props.html}</div>
   <script>window.ssr_data = ${props.ssr_data}</script>
+  <script>window.ssr_statusCode = ${props.ssr_statusCode}</script>
   <script src="${
     WDS_PORT ? `http://localhost:${WDS_PORT}/dist/browser.js` : "/browser.js"
   }"></script>
