@@ -21,6 +21,7 @@ export type TLayoutData = {
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
   const chyk = useChyk()
+  console.log("render Layout", data, chyk.statusCode)
   if (!data) return null
   return (
     <div>
@@ -128,11 +129,6 @@ export const routes: TRouteConfig[] = [
         dataKey: "home",
         loadData: homeLoader,
       },
-      // {
-      //   path: "/404",
-      //   component: NotFound as FC,
-      //   loadData: async ({ chyk }) => (chyk.statusCode = 404),
-      // },
       {
         path: "/:slug",
         component: Article as FC,

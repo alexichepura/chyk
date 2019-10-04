@@ -25,7 +25,17 @@ type TChykProps = {
 }
 
 export class Chyk {
-  statusCode: number = 200
+  private _statusCode: number = 200
+
+  setStatusCode(code: number) {
+    // console.log("setStatusCode", code)
+    this._statusCode = code
+  }
+
+  get statusCode() {
+    return this._statusCode
+  }
+
   url: URL
   routes: TRouteConfig[]
   data: any
@@ -40,11 +50,12 @@ export class Chyk {
 
     const initStatusCode = props.ctx && props.ctx.statusCode
     if (initStatusCode) {
-      this.statusCode = initStatusCode
+      this.setStatusCode(initStatusCode)
     }
 
     this.history = props.browser ? createBrowserHistory() : null
     this.defaultProps = props.defaultProps
+    this.listenHistory()
   }
 
   get ctx() {
@@ -98,9 +109,18 @@ export class Chyk {
     return this.data[dataKey]
   }
   set404 = (): void => {
-    this.statusCode = 404
+    this.setStatusCode(404)
   }
   get is404(): boolean {
     return this.statusCode === 404
+  }
+
+  private listenHistory = () => {
+    if (!this.history) {
+      return
+    }
+    this.history.listen(() => {
+      this.setStatusCode(200)
+    })
   }
 }
