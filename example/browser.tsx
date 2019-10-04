@@ -6,11 +6,10 @@ const init = async () => {
   const chyk = new Chyk({
     url: new URL(window.location.href),
     routes,
-    data: (window as any).ssr_data,
+    ctx: (window as any).chyk_ctx,
     browser: true,
     defaultProps: { apiClient },
   })
-  chyk.statusCode = (window as any).ssr_statusCode
   await chyk.tryLoadData()
   chyk.tryHydrate(document.getElementById("app"))
 }

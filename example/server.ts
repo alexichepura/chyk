@@ -3,7 +3,7 @@ const { WDS_PORT, PORT } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
-import { Chyk } from "../src/chyk"
+import { Chyk, TChykCtx } from "../src/chyk"
 import { routes } from "./app"
 import { apiClient } from "./db"
 
@@ -21,9 +21,7 @@ server.on("request", async (request, response) => {
     const html = renderToString(createElement(Component))
 
     response.statusCode = chyk.statusCode
-    response.end(
-      template({ html, ssr_data: JSON.stringify(chyk.data), ssr_statusCode: chyk.statusCode })
-    )
+    response.end(template({ html, chyk_ctx: chyk.ctx }))
   } catch (e) {
     console.log(e)
     response.end(e)
@@ -36,8 +34,7 @@ server.listen(port, () => {
 
 type TTemplateProps = {
   html: string
-  ssr_data: string
-  ssr_statusCode: number
+  chyk_ctx: TChykCtx
 }
 const template = (props: TTemplateProps) => `
 <!DOCTYPE html>
@@ -50,8 +47,7 @@ const template = (props: TTemplateProps) => `
 </head>
 <body>
   <div id="app">${props.html}</div>
-  <script>window.ssr_data = ${props.ssr_data}</script>
-  <script>window.ssr_statusCode = ${props.ssr_statusCode}</script>
+  <script>window.chyk_ctx = ${JSON.stringify(props.chyk_ctx)}</script>
   <script src="${
     WDS_PORT ? `http://localhost:${WDS_PORT}/dist/browser.js` : "/browser.js"
   }"></script>

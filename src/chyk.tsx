@@ -11,11 +11,16 @@ import {
   TRouteConfig,
 } from "./match"
 
+export type TChykCtx = {
+  data?: any
+  statusCode?: number
+}
+
 type TChykProps = {
   url: URL
   routes: TRouteConfig[]
   browser?: boolean
-  data?: any
+  ctx?: TChykCtx
   defaultProps?: any
 }
 
@@ -31,17 +36,23 @@ export class Chyk {
   constructor(props: TChykProps) {
     this.url = props.url
     this.routes = props.routes
-    this.data = props.data
+    this.data = props.ctx && props.ctx.data
+
+    const initStatusCode = props.ctx && props.ctx.statusCode
+    if (initStatusCode) {
+      this.statusCode = initStatusCode
+    }
+
     this.history = props.browser ? createBrowserHistory() : null
     this.defaultProps = props.defaultProps
   }
 
-  // get ssr_ctx() {
-  //   return {
-  //     statusCode: this.statusCode,
-  //     data: this.data,
-  //   }
-  // }
+  get ctx() {
+    return {
+      statusCode: this.statusCode,
+      data: this.data,
+    }
+  }
 
   loadData = async (props?: any) => {
     const [data] = await Promise.all([
