@@ -37,8 +37,7 @@
   "peerDependencies": {
     "react": ">=16.8",
     "react-dom": ">=16.8",
-    "react-router-config": ">=5.0.1",
-    "tslib": "^1.10.0"
+    "react-router-config": ">=5.0.1"
   },
   "scripts": {
     "build": "tsc",

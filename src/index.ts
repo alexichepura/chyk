@@ -1,4 +1,4 @@
-export { Chyk } from "./chyk"
+export { Chyk, TChykCtx } from "./chyk"
 export { ChykContext, useChyk } from "./hooks"
 export { TLoadData, TRouteConfig } from "./match"
 export { useRouteData } from "./useRouteData"
