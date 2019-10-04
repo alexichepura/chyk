@@ -1,10 +1,15 @@
 import { createBrowserHistory, History } from "history"
-import React, { FC } from "react"
+import React, { FC, useEffect } from "react"
 import { hydrate, render } from "react-dom"
 import { Router, StaticRouter, StaticRouterContext } from "react-router"
 import { renderRoutes } from "react-router-config"
 import { ChykContext } from "./hooks"
-import { ensure_component_ready, loadBranchDataObject, TLoadDataResult, TRouteConfig } from "./match"
+import {
+  ensure_component_ready,
+  loadBranchDataObject,
+  TLoadDataResult,
+  TRouteConfig,
+} from "./match"
 
 type TChykProps = {
   url: URL
@@ -33,7 +38,10 @@ export class Chyk {
 
   loadData = async (props?: any) => {
     const [data] = await Promise.all([
-      loadBranchDataObject(this, this.url.pathname, this.routes, {...this.defaultProps, ...props}),
+      loadBranchDataObject(this, this.url.pathname, this.routes, {
+        ...this.defaultProps,
+        ...props,
+      }),
       ensure_component_ready(this.url.pathname, this.routes),
     ])
     this.data = data
@@ -46,6 +54,9 @@ export class Chyk {
   }
 
   render: FC = () => {
+    useEffect(() => {
+      this.data = null
+    }, [])
     return (
       <ChykContext.Provider value={this}>
         {this.history ? (
@@ -63,7 +74,6 @@ export class Chyk {
     const Component = this.render
     const renderMethod = el && el.childNodes.length === 0 ? render : hydrate
     renderMethod(<Component />, el)
-    this.data = null
   }
 
   getData<D>(dataKey: string): TLoadDataResult<D> {

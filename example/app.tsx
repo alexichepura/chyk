@@ -9,6 +9,8 @@ import { DbClient, TArticle } from "./db"
 export type TChykDefaultProps = { apiClient: DbClient }
 type TAppLoadData<T, M = any> = TLoadData<T, M, TChykDefaultProps>
 
+const link_style: React.CSSProperties = { marginLeft: "1rem" }
+
 // LAYOUT
 type TLayoutProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
 export type TLayoutData = {
@@ -17,24 +19,22 @@ export type TLayoutData = {
 }
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
-  // useLocation()
   if (!data) return null
   return (
     <div>
       <header>
-        <h2>Header. Year: {data.year}</h2>
         <Link to={"/"}>home</Link>
+        {data.articles.map(a => (
+          <Link key={a.slug} to={"/" + a.slug} style={link_style}>
+            {a.title}
+          </Link>
+        ))}
+        <Link to={"/article-404"} style={link_style}>
+          404
+        </Link>
       </header>
       <main>{renderRoutes(props.route && props.route.routes)}</main>
-      <footer>
-        <h2>Footer</h2>
-        <h3>Articles</h3>
-        {data.articles.map(a => (
-          <div key={a.slug}>
-            <Link to={"/" + a.slug}>{a.title}</Link>
-          </div>
-        ))}
-      </footer>
+      <footer>&copy; {data.year}</footer>
     </div>
   )
 }
@@ -87,6 +87,7 @@ export const Article: FC<TArticleProps> = props => {
   return (
     <div>
       <h1>Page {data.article.title}</h1>
+      <article>{data.article.content}</article>
     </div>
   )
 }
@@ -103,7 +104,11 @@ const articleLoader: TAppLoadData<TArticleData, TArticleMatchParams> = async ({
 }
 
 // NOT FOUND
-export const NotFound: FC = () => <div>404 not found</div>
+export const NotFound: FC = () => (
+  <div>
+    <h1>404 not found</h1>
+  </div>
+)
 
 export const routes: TRouteConfig[] = [
   {
