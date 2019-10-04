@@ -12,13 +12,9 @@ const server = createServer()
 server.on("request", async (request, response) => {
   try {
     const pathname: string = request.url || ""
-    const url = new URL(pathname, "http://localhost")
-
-    const chyk = new Chyk({ url, routes, defaultProps: { apiClient } })
-    await chyk.loadData()
-
-    const Component = chyk.render
-    const html = renderToString(createElement(Component))
+    const chyk = new Chyk({ routes, defaultProps: { apiClient } })
+    await chyk.loadData(pathname)
+    const html = renderToString(createElement(chyk.renderStatic, { pathname }))
 
     response.statusCode = chyk.statusCode
     response.end(template({ html, chyk_ctx: chyk.ctx }))

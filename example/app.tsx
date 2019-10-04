@@ -21,7 +21,7 @@ export type TLayoutData = {
 export const Layout: FC<TLayoutProps> = props => {
   const { data } = useRouteData<TLayoutData>(props)
   const chyk = useChyk()
-  console.log("render Layout", data, chyk.statusCode)
+  console.log("render Layout", data, chyk.statusCode, props.location)
   if (!data) return null
   return (
     <div>
