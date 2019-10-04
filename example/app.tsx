@@ -35,9 +35,7 @@ export const Layout: FC<TLayoutProps> = props => {
           404
         </Link>
       </header>
-      <main>
-        {chyk.statusCode === 404 ? <NotFound /> : renderRoutes(props.route && props.route.routes)}
-      </main>
+      <main>{chyk.is404 ? <NotFound /> : renderRoutes(props.route && props.route.routes)}</main>
       <footer>&copy; {data.year}</footer>
     </div>
   )
@@ -105,7 +103,7 @@ const articleLoader: TAppLoadData<TArticleData, TArticleMatchParams> = async ({
   console.log("articleLoader")
   const article = await apiClient.getArticle(match.params.slug)
   if (!article) {
-    chyk.statusCode = 404
+    chyk.set404()
   }
   return { article }
 }
@@ -143,7 +141,7 @@ export const routes: TRouteConfig[] = [
       },
       {
         component: NotFound as FC,
-        loadData: async ({ chyk }) => (chyk.statusCode = 404),
+        loadData: async ({ chyk }) => chyk.set404(),
       },
     ],
   },

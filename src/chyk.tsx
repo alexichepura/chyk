@@ -86,4 +86,10 @@ export class Chyk {
   getData<D>(dataKey: string): TLoadDataResult<D> {
     return this.data[dataKey]
   }
+  set404 = (): void => {
+    this.statusCode = 404
+  }
+  get is404(): boolean {
+    return this.statusCode === 404
+  }
 }
