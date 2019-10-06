@@ -19,18 +19,18 @@ const articles: TArticle[] = [
 
 export class DbClient {
   getYear = async () => {
-    console.log("getYear")
-    await delay(1000)
+    // console.log("getYear")
+    await delay(200)
     return 2020
   }
   getArticle = async (slug: string) => {
-    console.log("getArticle")
-    await delay(1000)
+    // console.log("getArticle")
+    await delay(300)
     return articles.find(article => article.slug === slug)
   }
   getArticles = async () => {
-    console.log("getArticles")
-    await delay(1500)
+    // console.log("getArticles")
+    await delay(400)
     return articles
   }
 }

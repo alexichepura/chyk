@@ -1,4 +1,4 @@
-import { match } from "react-router"
+import { match, RouteComponentProps } from "react-router"
 import { matchRoutes, RouteConfig } from "react-router-config"
 import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { Chyk } from "./chyk"
@@ -16,6 +16,11 @@ export type TRouteConfig = RouteConfig & {
   loadData?: TLoadData<any, any, any>
   dataKey?: string
   routes?: TRouteConfig[]
+}
+
+export type TDataComponentProps<D, P = any> = RouteComponentProps<P> & {
+  route: TRouteConfig
+  data: D
 }
 
 type TPromiseConfig = {

@@ -1,10 +1,8 @@
 import React, { FC } from "react"
-import { RouteComponentProps } from "react-router"
-import { renderRoutes } from "react-router-config"
 import { Link } from "react-router-dom"
 import { useChyk } from "../src"
-import { TLoadData, TRouteConfig } from "../src/match"
-import { useRouteData } from "../src/useRouteData"
+import { TDataComponentProps, TLoadData, TRouteConfig } from "../src/match"
+import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
 export type TChykDefaultProps = { apiClient: DbClient }
@@ -13,16 +11,14 @@ type TAppLoadData<T, M = any> = TLoadData<T, M, TChykDefaultProps>
 const link_style: React.CSSProperties = { marginLeft: "1rem" }
 
 // LAYOUT
-type TLayoutProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
 export type TLayoutData = {
   year: number
   articles: TArticle[]
 }
-export const Layout: FC<TLayoutProps> = props => {
-  const { data } = useRouteData<TLayoutData>(props)
+type TLayoutProps = TDataComponentProps<TLayoutData>
+
+export const Layout: FC<TLayoutProps> = ({ data, route }) => {
   const chyk = useChyk()
-  console.log("render Layout", data, chyk.statusCode, props.location)
-  if (!data) return null
   return (
     <div>
       <header>
@@ -35,8 +31,11 @@ export const Layout: FC<TLayoutProps> = props => {
         <Link to={"/article-404"} style={link_style}>
           404
         </Link>
+        <span style={link_style}>{chyk.loading ? "Loading" : "Loaded"}</span>
       </header>
-      <main>{chyk.is404 ? <NotFound /> : renderRoutes(props.route && props.route.routes)}</main>
+      <main>
+        {chyk.is404 ? <NotFound /> : route.routes && <DataRoutes routes={route.routes} />}
+      </main>
       <footer>&copy; {data.year}</footer>
     </div>
   )
@@ -48,14 +47,12 @@ const layoutLoader: TAppLoadData<TLayoutData> = async ({ props: { apiClient } })
 }
 
 // HOME
-type THomeProps = {} & RouteComponentProps<{}> & { route: TRouteConfig }
 export type THomeData = {
   articles: TArticle[]
 }
-export const Home: FC<THomeProps> = props => {
-  const { data } = useRouteData<THomeData>(props)
-  if (!data) return null
+type THomeProps = TDataComponentProps<THomeData>
 
+export const Home: FC<THomeProps> = ({ data }) => {
   return (
     <div>
       <h1>Page Home</h1>
@@ -78,17 +75,11 @@ const homeLoader: TAppLoadData<THomeData> = async ({ props: { apiClient } }) => 
 
 // ARTICLE
 type TArticleMatchParams = { slug: string }
-type TArticleProps = {} & RouteComponentProps<TArticleMatchParams> & { route: TRouteConfig }
+type TArticleProps = TDataComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
-  article?: TArticle
+  article: TArticle
 }
-export const Article: FC<TArticleProps> = props => {
-  const { data } = useRouteData<TArticleData>({
-    route: props.route,
-    match: props.match,
-    deps: [props.match.params.slug],
-  })
-  if (!data || !data.article) return null
+export const Article: FC<TArticleProps> = ({ data }) => {
   return (
     <div>
       <h1>Page {data.article.title}</h1>
@@ -96,7 +87,7 @@ export const Article: FC<TArticleProps> = props => {
     </div>
   )
 }
-const articleLoader: TAppLoadData<TArticleData, TArticleMatchParams> = async ({
+const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = async ({
   match,
   chyk,
   props: { apiClient },

@@ -1,8 +1,7 @@
-import { createBrowserHistory, History } from "history"
+import { createBrowserHistory, History, Location } from "history"
 import React, { FC, useEffect, useState } from "react"
 import { hydrate, render } from "react-dom"
 import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
-import { renderRoutes } from "react-router-config"
 import { ChykContext, useChyk } from "./hooks"
 import {
   ensure_component_ready,
@@ -10,6 +9,7 @@ import {
   TLoadDataResult,
   TRouteConfig,
 } from "./match"
+import { DataRoutes } from "./routes"
 
 export type TChykCtx = {
   data?: any
@@ -24,67 +24,85 @@ type TChykProps = {
 }
 
 export class Chyk {
-  private _statusCode: number = 200
-
-  setStatusCode(code: number) {
-    // console.log("setStatusCode", code)
-    this._statusCode = code
+  routes: TRouteConfig[]
+  defaultProps: any
+  staticRouterContext: StaticRouterContext = {}
+  history: History | null
+  location: Location | null
+  get locationKey(): string {
+    return this.location && this.location.key ? this.location.key : "ssr"
   }
 
+  private _statusCode: number = 200
+  setStatusCode(code: number) {
+    this._statusCode = code
+  }
   get statusCode() {
     return this._statusCode
   }
 
-  routes: TRouteConfig[]
-  data: any
-  defaultProps: any
-  staticRouterContext: StaticRouterContext = {}
-  history: History | null
+  private data: any
+  loading: boolean = false
 
   constructor(props: TChykProps) {
     this.routes = props.routes
-    this.data = props.ctx && props.ctx.data
-
-    const initStatusCode = props.ctx && props.ctx.statusCode
-    if (initStatusCode) {
-      this.setStatusCode(initStatusCode)
-    }
 
     this.history = props.browser ? createBrowserHistory() : null
+    this.location = this.history ? this.history.location : null
     this.defaultProps = props.defaultProps
+
+    if (props.ctx) {
+      if (props.ctx.statusCode) {
+        this.setStatusCode(props.ctx.statusCode)
+      }
+      if (props.ctx.data) {
+        this.setLocationData(this.locationKey, props.ctx.data)
+      }
+    }
     this.listenHistory()
+  }
+
+  setLocationData(locationKey: string, data: any) {
+    this.data = {
+      [locationKey]: data,
+    }
+  }
+
+  getLocationData(locationKey: string | undefined = "ssr") {
+    return this.data[locationKey]
+  }
+
+  getLocationRouteData<D>(
+    locationKey: string | undefined = "ssr",
+    dataKey: string
+  ): TLoadDataResult<D> {
+    return this.getLocationData(locationKey)[dataKey]
   }
 
   get ctx() {
     return {
       statusCode: this.statusCode,
-      data: this.data,
+      data: this.getLocationData(),
     }
   }
 
-  loadLocationData = async (props?: any) => {
-    return this.loadData(this.history!.location.pathname, props)
-  }
-
-  loadData = async (pathname: string, props?: any) => {
+  loadData = async (pathname: string, locationKey: string = "ssr") => {
+    this.loading = true
     const [data] = await Promise.all([
-      loadBranchDataObject(this, pathname, this.routes, {
-        ...this.defaultProps,
-        ...props,
-      }),
+      loadBranchDataObject(this, pathname, this.routes, this.defaultProps),
       ensure_component_ready(pathname, this.routes),
     ])
-    this.data = data
+    this.setLocationData(locationKey, data)
+    this.loading = false
   }
 
   render: FC = () => {
-    useEffect(() => {
-      this.data = null
-    }, [])
     return (
       <ChykContext.Provider value={this}>
         <Router history={this.history!}>
-          <ChykPreloader />
+          <ChykPreloader>
+            <DataRoutes routes={this.routes} />
+          </ChykPreloader>
         </Router>
       </ChykContext.Provider>
     )
@@ -94,7 +112,7 @@ export class Chyk {
     return (
       <ChykContext.Provider value={this}>
         <StaticRouter location={pathname} context={this.staticRouterContext}>
-          {renderRoutes(this.routes)}
+          <DataRoutes routes={this.routes} />
         </StaticRouter>
       </ChykContext.Provider>
     )
@@ -106,9 +124,6 @@ export class Chyk {
     renderMethod(<Component />, el)
   }
 
-  getData<D>(dataKey: string): TLoadDataResult<D> {
-    return this.data[dataKey]
-  }
   set404 = (): void => {
     this.setStatusCode(404)
   }
@@ -122,32 +137,32 @@ export class Chyk {
     }
     const history = this.history
     history.listen(() => {
-      console.log("listenHistory", history.location.pathname)
       this.setStatusCode(200)
     })
   }
 }
 
-type TChykPreloaderProps = {}
-// & RouteComponentProps<{}> & { route: TRouteConfig }
-const ChykPreloader: FC<TChykPreloaderProps> = () => {
+const ChykPreloader: FC = ({ children }) => {
   const chyk = useChyk()
   const location = useLocation()
-  console.log("location", location)
   const [state_location, setLocation] = useState(location)
-
+  console.log(
+    "ChykPreloader render",
+    location.key,
+    location.pathname,
+    state_location.key,
+    state_location.pathname
+  )
   useEffect(() => {
-    chyk.loadLocationData().then(() => {
+    if (chyk.getLocationData(location.key)) {
+      return
+    }
+    chyk.loadData(location.pathname, location.key).then(() => {
+      console.log("ChykPreloader loadData.then", location.pathname, state_location.pathname)
+      chyk.location = location
       setLocation(location)
     })
-  }, [location.key])
+  }, [location.pathname])
 
-  return (
-    <Route
-      // location={previousLocation || location}
-      location={state_location}
-      // render={props => renderRoutes(chyk.routes, props)}
-      render={() => renderRoutes(chyk.routes)}
-    />
-  )
+  return <Route location={state_location} render={() => children} />
 }
