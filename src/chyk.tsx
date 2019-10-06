@@ -11,7 +11,7 @@ import {
 } from "./match"
 import { DataRoutes } from "./routes"
 
-export type TChykCtx = {
+export type TChykState = {
   data?: any
   statusCode?: number
 }
@@ -19,7 +19,7 @@ export type TChykCtx = {
 type TChykProps = {
   routes: TRouteConfig[]
   browser?: boolean
-  ctx?: TChykCtx
+  ctx?: TChykState
   defaultProps?: any
 }
 
@@ -59,7 +59,6 @@ export class Chyk {
         this.setLocationData(this.locationKey, props.ctx.data)
       }
     }
-    this.listenHistory()
   }
 
   setLocationData(locationKey: string, data: any) {
@@ -87,6 +86,7 @@ export class Chyk {
   }
 
   loadData = async (pathname: string, locationKey: string = "ssr") => {
+    console.log("loadData", pathname, locationKey)
     this.loading = true
     const [data] = await Promise.all([
       loadBranchDataObject(this, pathname, this.routes, this.defaultProps),
@@ -130,16 +130,6 @@ export class Chyk {
   get is404(): boolean {
     return this.statusCode === 404
   }
-
-  private listenHistory = () => {
-    if (!this.history) {
-      return
-    }
-    const history = this.history
-    history.listen(() => {
-      this.setStatusCode(200)
-    })
-  }
 }
 
 const ChykPreloader: FC = ({ children }) => {
@@ -148,17 +138,32 @@ const ChykPreloader: FC = ({ children }) => {
   const [state_location, setLocation] = useState(location)
   console.log(
     "ChykPreloader render",
-    location.key,
-    location.pathname,
     state_location.key,
-    state_location.pathname
+    state_location.pathname,
+    location.key,
+    location.pathname
   )
   useEffect(() => {
+    console.log(
+      "ChykPreloader useEffect",
+      state_location.key,
+      state_location.pathname,
+      location.key,
+      location.pathname
+    )
     if (chyk.getLocationData(location.key)) {
+      console.log("ChykPreloader getLocationData return")
       return
     }
+    chyk.setStatusCode(200)
     chyk.loadData(location.pathname, location.key).then(() => {
-      console.log("ChykPreloader loadData.then", location.pathname, state_location.pathname)
+      console.log(
+        "ChykPreloader then",
+        state_location.key,
+        state_location.pathname,
+        location.key,
+        location.pathname
+      )
       chyk.location = location
       setLocation(location)
     })

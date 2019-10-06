@@ -1,8 +1,8 @@
-import { Chyk, TChykCtx } from "../src/chyk"
+import { Chyk, TChykState } from "../src/chyk"
 import { routes } from "./app"
 import { apiClient } from "./db"
 
-const ctx = (window as any).chyk_ctx as TChykCtx
+const ctx = (window as any).chyk_ctx as TChykState
 
 const init = async () => {
   const chyk = new Chyk({

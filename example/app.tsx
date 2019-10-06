@@ -29,7 +29,10 @@ export const Layout: FC<TLayoutProps> = ({ data, route }) => {
           </Link>
         ))}
         <Link to={"/article-404"} style={link_style}>
-          404
+          Article 404
+        </Link>
+        <Link to={"/route/404"} style={link_style}>
+          Route 404
         </Link>
         <span style={link_style}>{chyk.loading ? "Loading" : "Loaded"}</span>
       </header>

@@ -3,7 +3,7 @@ const { WDS_PORT, PORT } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
-import { Chyk, TChykCtx } from "../src/chyk"
+import { Chyk, TChykState } from "../src/chyk"
 import { routes } from "./app"
 import { apiClient } from "./db"
 
@@ -30,7 +30,7 @@ server.listen(port, () => {
 
 type TTemplateProps = {
   html: string
-  chyk_ctx: TChykCtx
+  chyk_ctx: TChykState
 }
 const template = (props: TTemplateProps) => `
 <!DOCTYPE html>
