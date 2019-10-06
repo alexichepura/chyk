@@ -86,7 +86,6 @@ export class Chyk {
   }
 
   loadData = async (pathname: string, locationKey: string = "ssr") => {
-    console.log("loadData", pathname, locationKey)
     this.loading = true
     const [data] = await Promise.all([
       loadBranchDataObject(this, pathname, this.routes, this.defaultProps),
@@ -167,7 +166,7 @@ const ChykPreloader: FC = ({ children }) => {
       chyk.location = location
       setLocation(location)
     })
-  }, [location.pathname])
+  }, [location.key])
 
   return <Route location={state_location} render={() => children} />
 }

@@ -126,6 +126,7 @@ export const routes: TRouteConfig[] = [
       {
         path: "/:slug",
         component: Article as FC,
+        exact: true,
         dataKey: "article",
         loadData: articleLoader,
       },
