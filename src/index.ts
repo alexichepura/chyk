@@ -1,5 +1,6 @@
 export { Chyk, TChykState as TChykCtx } from "./chyk"
 export { ChykContext, useChyk } from "./hooks"
 export { TLoadData, TRouteConfig } from "./match"
+export { DataRoutes } from "./routes"
 // export { useRouteData } from "./useRouteData"
 export { getEntryAssetsScripts, TWebpackAssetsManifestJson } from "./webpack-assets-manifest"
