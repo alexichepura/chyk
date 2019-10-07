@@ -1,5 +1,5 @@
 import { createBrowserHistory, History, Location } from "history"
-import React, { FC, useEffect, useState } from "react"
+import React, { FC, useState } from "react"
 import { hydrate, render } from "react-dom"
 import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
 import { ChykContext, useChyk } from "./hooks"
@@ -135,38 +135,24 @@ const ChykPreloader: FC = ({ children }) => {
   const chyk = useChyk()
   const location = useLocation()
   const [state_location, setLocation] = useState(location)
-  // console.log(
-  //   "ChykPreloader render",
-  //   state_location.key,
-  //   state_location.pathname,
-  //   location.key,
-  //   location.pathname
-  // )
-  useEffect(() => {
-    // console.log(
-    //   "ChykPreloader useEffect",
-    //   state_location.key,
-    //   state_location.pathname,
-    //   location.key,
-    //   location.pathname
-    // )
-    if (chyk.getLocationData(location.key)) {
-      // console.log("ChykPreloader getLocationData return")
-      return
-    }
+  // useEffect(() => {
+  //   if (chyk.getLocationData(location.key)) {
+  //     return
+  //   }
+  //   chyk.setStatusCode(200)
+  //   chyk.loadData(location.pathname, location.key).then(() => {
+  //     chyk.location = location
+  //     setLocation(location)
+  //   })
+  // }, [location.key])
+
+  if (location.key !== state_location.key && !chyk.getLocationData(location.key)) {
     chyk.setStatusCode(200)
     chyk.loadData(location.pathname, location.key).then(() => {
-      // console.log(
-      //   "ChykPreloader then",
-      //   state_location.key,
-      //   state_location.pathname,
-      //   location.key,
-      //   location.pathname
-      // )
       chyk.location = location
       setLocation(location)
     })
-  }, [location.key])
+  }
 
   return <Route location={state_location} render={() => children} />
 }

@@ -18,6 +18,7 @@ export type TLayoutData = {
 type TLayoutProps = TDataComponentProps<TLayoutData>
 export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
+  console.log("Layout render", chyk.loading)
   return (
     <div>
       <header>
