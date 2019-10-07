@@ -135,34 +135,34 @@ const ChykPreloader: FC = ({ children }) => {
   const chyk = useChyk()
   const location = useLocation()
   const [state_location, setLocation] = useState(location)
-  console.log(
-    "ChykPreloader render",
-    state_location.key,
-    state_location.pathname,
-    location.key,
-    location.pathname
-  )
+  // console.log(
+  //   "ChykPreloader render",
+  //   state_location.key,
+  //   state_location.pathname,
+  //   location.key,
+  //   location.pathname
+  // )
   useEffect(() => {
-    console.log(
-      "ChykPreloader useEffect",
-      state_location.key,
-      state_location.pathname,
-      location.key,
-      location.pathname
-    )
+    // console.log(
+    //   "ChykPreloader useEffect",
+    //   state_location.key,
+    //   state_location.pathname,
+    //   location.key,
+    //   location.pathname
+    // )
     if (chyk.getLocationData(location.key)) {
-      console.log("ChykPreloader getLocationData return")
+      // console.log("ChykPreloader getLocationData return")
       return
     }
     chyk.setStatusCode(200)
     chyk.loadData(location.pathname, location.key).then(() => {
-      console.log(
-        "ChykPreloader then",
-        state_location.key,
-        state_location.pathname,
-        location.key,
-        location.pathname
-      )
+      // console.log(
+      //   "ChykPreloader then",
+      //   state_location.key,
+      //   state_location.pathname,
+      //   location.key,
+      //   location.pathname
+      // )
       chyk.location = location
       setLocation(location)
     })

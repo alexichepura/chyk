@@ -16,14 +16,13 @@ export type TLayoutData = {
   articles: TArticle[]
 }
 type TLayoutProps = TDataComponentProps<TLayoutData>
-
-export const Layout: FC<TLayoutProps> = ({ data, route }) => {
+export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
   return (
     <div>
       <header>
         <Link to={"/"}>home</Link>
-        {data.articles.map(a => (
+        {articles.map(a => (
           <Link key={a.slug} to={"/" + a.slug} style={link_style}>
             {a.title}
           </Link>
@@ -39,7 +38,7 @@ export const Layout: FC<TLayoutProps> = ({ data, route }) => {
       <main>
         {chyk.is404 ? <NotFound /> : route.routes && <DataRoutes routes={route.routes} />}
       </main>
-      <footer>&copy; {data.year}</footer>
+      <footer>&copy; {year}</footer>
     </div>
   )
 }
@@ -54,22 +53,19 @@ export type THomeData = {
   articles: TArticle[]
 }
 type THomeProps = TDataComponentProps<THomeData>
-
-export const Home: FC<THomeProps> = ({ data }) => {
-  return (
+export const Home: FC<THomeProps> = ({ articles }) => (
+  <div>
+    <h1>Page Home</h1>
     <div>
-      <h1>Page Home</h1>
+      <h2>Articles</h2>
       <div>
-        <h2>Articles</h2>
-        <div>
-          {data.articles.map(a => (
-            <div key={a.slug}>{a.title}</div>
-          ))}
-        </div>
+        {articles.map(a => (
+          <div key={a.slug}>{a.title}</div>
+        ))}
       </div>
     </div>
-  )
-}
+  </div>
+)
 const homeLoader: TAppLoadData<THomeData> = async ({ props: { apiClient } }) => {
   console.log("homeLoader")
   const articles = await apiClient.getArticles()
@@ -82,14 +78,12 @@ type TArticleProps = TDataComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
   article: TArticle
 }
-export const Article: FC<TArticleProps> = ({ data }) => {
-  return (
-    <div>
-      <h1>Page {data.article.title}</h1>
-      <article>{data.article.content}</article>
-    </div>
-  )
-}
+export const Article: FC<TArticleProps> = ({ article }) => (
+  <div>
+    <h1>Page {article.title}</h1>
+    <article>{article.content}</article>
+  </div>
+)
 const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = async ({
   match,
   chyk,
