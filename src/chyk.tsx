@@ -1,20 +1,21 @@
 import { createBrowserHistory, History, Location } from "history"
-import React, { FC, useEffect, useState } from "react"
+import React, { FC, useState } from "react"
 import { hydrate, render } from "react-dom"
 import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
 import { ChykContext, useChyk } from "./hooks"
-import {
-  ensure_component_ready,
-  loadBranchDataObject,
-  TLoadDataResult,
-  TRouteConfig,
-} from "./match"
+import { ensure_component_ready, loadBranchDataObject, TRouteConfig } from "./match"
 import { DataRoutes } from "./routes"
 
 export type TChykState = {
   data?: any
   statusCode?: number
 }
+
+export type TChykLocationCtx = {
+  data?: any
+  abortController?: AbortController
+}
+export type TChykLocationsCtx = Record<string, TChykLocationCtx>
 
 type TChykProps = {
   routes: TRouteConfig[]
@@ -41,7 +42,7 @@ export class Chyk {
     return this._statusCode
   }
 
-  private data: any
+  private locationsCtx: TChykLocationsCtx = {}
   loading: boolean = false
 
   constructor(props: TChykProps) {
@@ -56,46 +57,42 @@ export class Chyk {
         this.setStatusCode(props.ctx.statusCode)
       }
       if (props.ctx.data) {
-        this.setLocationData(this.locationKey, props.ctx.data)
+        this.setLocationCtxData(this.locationKey, props.ctx.data)
       }
     }
   }
 
-  setLocationData(locationKey: string, data: any) {
-    this.data = {
-      [locationKey]: data,
+  setLocationCtx(locationKey: string, ctx: TChykLocationCtx) {
+    this.locationsCtx = {
+      [locationKey]: ctx,
     }
   }
-
-  getLocationData(locationKey: string | undefined = "ssr") {
-    return this.data[locationKey]
+  setLocationCtxData(locationKey: string, data: any) {
+    this.setLocationCtx(locationKey, { data })
   }
 
-  getLocationRouteData<D>(
-    locationKey: string | undefined = "ssr",
-    dataKey: string
-  ): TLoadDataResult<D> {
-    return this.getLocationData(locationKey)[dataKey]
+  getLocationCtx(locationKey: string | undefined = "ssr"): TChykLocationCtx {
+    return this.locationsCtx[locationKey]
+  }
+  getLocationCtxData(locationKey: string | undefined = "ssr") {
+    return this.getLocationCtx(locationKey).data
   }
 
   get ctx() {
     return {
       statusCode: this.statusCode,
-      data: this.getLocationData(),
+      data: this.getLocationCtxData(),
     }
   }
 
-  loadData = async (
-    pathname: string,
-    locationKey: string = "ssr",
-    abortController?: AbortController
-  ) => {
+  loadData = async (pathname: string, locationKey: string = "ssr") => {
     this.loading = true
+    const abortController = this.history ? new AbortController() : undefined
     const [data] = await Promise.all([
       loadBranchDataObject(this, pathname, this.routes, this.defaultProps, abortController),
       ensure_component_ready(pathname, this.routes),
     ])
-    this.setLocationData(locationKey, data)
+    this.setLocationCtx(locationKey, { abortController, data })
     this.loading = false
   }
 
@@ -139,39 +136,24 @@ const ChykPreloader: FC = ({ children }) => {
   const chyk = useChyk()
   const location = useLocation()
   const [state_location, setLocation] = useState(location)
-  console.log(
-    "ChykPreloader render",
-    state_location.key,
-    state_location.pathname,
-    location.key,
-    location.pathname
-  )
-  useEffect(() => {
-    console.log(
-      "ChykPreloader useEffect",
-      state_location.key,
-      state_location.pathname,
-      location.key,
-      location.pathname
-    )
-    if (chyk.getLocationData(location.key)) {
-      console.log("ChykPreloader getLocationData return")
-      return
-    }
+  // useEffect(() => {
+  //   if (chyk.getLocationData(location.key)) {
+  //     return
+  //   }
+  //   chyk.setStatusCode(200)
+  //   chyk.loadData(location.pathname, location.key).then(() => {
+  //     chyk.location = location
+  //     setLocation(location)
+  //   })
+  // }, [location.key])
+
+  if (location.key !== state_location.key && !chyk.getLocationCtx(location.key)) {
     chyk.setStatusCode(200)
-    const abortController = new AbortController()
-    chyk.loadData(location.pathname, location.key, abortController).then(() => {
-      console.log(
-        "ChykPreloader then",
-        state_location.key,
-        state_location.pathname,
-        location.key,
-        location.pathname
-      )
+    chyk.loadData(location.pathname, location.key).then(() => {
       chyk.location = location
       setLocation(location)
     })
-  }, [location.key])
+  }
 
   return <Route location={state_location} render={() => children} />
 }

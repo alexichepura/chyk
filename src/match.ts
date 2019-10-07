@@ -21,8 +21,7 @@ export type TRouteConfig = RouteConfig & {
 
 export type TDataComponentProps<D, P = any> = RouteComponentProps<P> & {
   route: TRouteConfig
-  data: D
-}
+} & D
 
 type TPromiseConfig = {
   dataKey: string
