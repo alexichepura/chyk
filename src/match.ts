@@ -33,18 +33,18 @@ type TPromiseConfig = {
 export const loadBranchDataObject = async (
   chyk: Chyk,
   pathname: string,
-  routes: TRouteConfig[],
-  props: any,
+  // routes: TRouteConfig[],
+  // props: any,
   abortController: AbortController
 ): Promise<TLoadDataResult> => {
-  const branch = matchRoutes(routes, pathname)
+  const branch = matchRoutes(chyk.routes, pathname)
   const promisesConfig: TPromiseConfig[] = branch
     .map(
       ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
         return route.loadData
           ? {
               dataKey: route.dataKey,
-              promise: route.loadData({ chyk, match, abortController, props }),
+              promise: route.loadData({ chyk, match, abortController, props: chyk.defaultProps }),
             }
           : (Promise.resolve(null) as any)
       }

@@ -51,9 +51,15 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles, abortControlle
     </div>
   )
 }
-const layoutLoader: TAppLoadData<TLayoutData> = async ({ props: { apiClient } }) => {
+const layoutLoader: TAppLoadData<TLayoutData> = async ({
+  abortController,
+  props: { apiClient },
+}) => {
   console.log("layoutLoader")
-  const [year, articles] = await Promise.all([apiClient.getYear(), apiClient.getArticles()])
+  const [year, articles] = await Promise.all([
+    apiClient.getYear(abortController.signal),
+    apiClient.getArticles(abortController.signal),
+  ])
   return { year, articles }
 }
 
@@ -75,9 +81,9 @@ export const Home: FC<THomeProps> = ({ articles }) => (
     </div>
   </div>
 )
-const homeLoader: TAppLoadData<THomeData> = async ({ props: { apiClient } }) => {
+const homeLoader: TAppLoadData<THomeData> = async ({ abortController, props: { apiClient } }) => {
   console.log("homeLoader")
-  const articles = await apiClient.getArticles()
+  const articles = await apiClient.getArticles(abortController.signal)
   return { articles }
 }
 
@@ -94,12 +100,13 @@ export const Article: FC<TArticleProps> = ({ article }) => (
   </div>
 )
 const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = async ({
+  abortController,
   match,
   chyk,
   props: { apiClient },
 }) => {
   console.log("articleLoader")
-  const article = await apiClient.getArticle(match.params.slug)
+  const article = await apiClient.getArticle(match.params.slug, abortController.signal)
   if (!article) {
     chyk.set404()
   }

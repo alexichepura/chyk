@@ -18,19 +18,16 @@ const articles: TArticle[] = [
 ]
 
 export class DbClient {
-  getYear = async () => {
-    // console.log("getYear")
-    await delay(200)
+  getYear = async (signal: AbortSignal) => {
+    await delayWithSignal(200, signal)
     return 2020
   }
-  getArticle = async (slug: string) => {
-    // console.log("getArticle")
-    await delay(300)
+  getArticle = async (slug: string, signal: AbortSignal) => {
+    await delayWithSignal(300, signal)
     return articles.find(article => article.slug === slug)
   }
-  getArticles = async () => {
-    // console.log("getArticles")
-    await delay(400)
+  getArticles = async (signal: AbortSignal) => {
+    await delayWithSignal(400, signal)
     return articles
   }
   getLongLoading = async (signal: AbortSignal) => {
@@ -54,11 +51,14 @@ function delayWithSignal(ms: number = 10, signal: AbortSignal) {
 
   return new Promise((resolve, reject) => {
     // Something fake async
-    const timeout = window.setTimeout(resolve, ms, "Promise Resolved")
+    const timeout = setTimeout(resolve, ms, "Promise Resolved")
 
+    if (typeof window === "undefined") {
+      return
+    }
     // Listen for abort event on signal
     signal.addEventListener("abort", () => {
-      window.clearTimeout(timeout)
+      clearTimeout(timeout)
       reject(new DOMException("Aborted", "AbortError"))
     })
   })
