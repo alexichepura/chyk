@@ -16,6 +16,7 @@ export type TRouteConfig = RouteConfig & {
   loadData?: TLoadData<any, any, any>
   dataKey?: string
   routes?: TRouteConfig[]
+  abortController?: AbortController
 }
 
 export type TDataComponentProps<D, P = any> = RouteComponentProps<P> & {
@@ -32,7 +33,8 @@ export const loadBranchDataObject = async (
   chyk: Chyk,
   pathname: string,
   routes: TRouteConfig[],
-  props: any
+  props: any,
+  abortController?: AbortController
 ): Promise<TLoadDataResult> => {
   const branch = matchRoutes(routes, pathname)
   const promisesConfig: TPromiseConfig[] = branch
@@ -41,7 +43,7 @@ export const loadBranchDataObject = async (
         return route.loadData
           ? {
               dataKey: route.dataKey,
-              promise: route.loadData({ chyk, match, props }),
+              promise: route.loadData({ chyk, match, abortController, props }),
             }
           : (Promise.resolve(null) as any)
       }

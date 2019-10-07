@@ -85,10 +85,14 @@ export class Chyk {
     }
   }
 
-  loadData = async (pathname: string, locationKey: string = "ssr") => {
+  loadData = async (
+    pathname: string,
+    locationKey: string = "ssr",
+    abortController?: AbortController
+  ) => {
     this.loading = true
     const [data] = await Promise.all([
-      loadBranchDataObject(this, pathname, this.routes, this.defaultProps),
+      loadBranchDataObject(this, pathname, this.routes, this.defaultProps, abortController),
       ensure_component_ready(pathname, this.routes),
     ])
     this.setLocationData(locationKey, data)
@@ -155,7 +159,8 @@ const ChykPreloader: FC = ({ children }) => {
       return
     }
     chyk.setStatusCode(200)
-    chyk.loadData(location.pathname, location.key).then(() => {
+    const abortController = new AbortController()
+    chyk.loadData(location.pathname, location.key, abortController).then(() => {
       console.log(
         "ChykPreloader then",
         state_location.key,
