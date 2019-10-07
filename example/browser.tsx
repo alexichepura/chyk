@@ -1,3 +1,4 @@
+import { createElement } from "react"
 import { Chyk, TChykState } from "../src/chyk"
 import { routes } from "./app"
 import { apiClient } from "./db"
@@ -8,10 +9,10 @@ const init = async () => {
   const chyk = new Chyk({
     routes,
     ctx,
-    browser: true,
     defaultProps: { apiClient },
+    el: document.getElementById("app"),
   })
-  chyk.tryHydrate(document.getElementById("app"))
+  chyk.renderer(createElement(chyk.render), chyk.el)
 }
 
 init()

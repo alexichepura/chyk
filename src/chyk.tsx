@@ -1,6 +1,6 @@
 import { createBrowserHistory, History, Location } from "history"
 import React, { FC, useRef, useState } from "react"
-import { hydrate, render } from "react-dom"
+import { hydrate, render, Renderer } from "react-dom"
 import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
 import { ChykContext, useChyk } from "./hooks"
 import { ensure_component_ready, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
@@ -23,16 +23,24 @@ export type TChykLocationsCtx = Record<string, TChykLocationCtx>
 
 type TChykProps = {
   routes: TRouteConfig[]
-  browser?: boolean
+  el?: HTMLElement | null
   ctx?: TChykState
   defaultProps?: any
 }
 
 export class Chyk {
+  private _el: HTMLElement | undefined | null = null
+  get el(): HTMLElement {
+    if (!this._el) {
+      throw "No element"
+    }
+    return this._el
+  }
+
+  history: History | null
+  staticRouterContext: StaticRouterContext = {}
   routes: TRouteConfig[]
   defaultProps: any
-  staticRouterContext: StaticRouterContext = {}
-  history: History | null
   get isBrowser(): boolean {
     return Boolean(this.history)
   }
@@ -47,8 +55,8 @@ export class Chyk {
 
   constructor(props: TChykProps) {
     this.routes = props.routes
-
-    this.history = props.browser ? createBrowserHistory() : null
+    this._el = props.el
+    this.history = props.el ? createBrowserHistory() : null
     this.location = this.history ? this.history.location : null
     this.defaultProps = props.defaultProps
 
@@ -84,7 +92,9 @@ export class Chyk {
     locationKey: string = SSR_LOCATION_KEY
   ): Promise<AbortController | undefined> => {
     this.loading = true
-    const abortController = this.isBrowser ? new AbortController() : ({signal: {aborted: false}} as AbortController) // mock on server
+    const abortController = this.isBrowser
+      ? new AbortController()
+      : ({ signal: { aborted: false } } as AbortController) // mock on server
 
     this.mergeLocationCtx(locationKey, { abortController, statusCode: 200 })
     try {
@@ -147,10 +157,11 @@ export class Chyk {
     )
   }
 
-  tryHydrate = (el: HTMLElement | null) => {
-    const Component = this.render
-    const renderMethod = el && el.childNodes.length === 0 ? render : hydrate
-    renderMethod(<Component />, el)
+  get renderer(): Renderer {
+    if (!this.el) {
+      throw "No renderer for no element"
+    }
+    return this.el.childNodes.length === 0 ? render : hydrate
   }
 }
 
