@@ -16,16 +16,15 @@ export type TLayoutData = {
   articles: TArticle[]
 }
 type TLayoutProps = TDataComponentProps<TLayoutData>
-export const Layout: FC<TLayoutProps> = ({ route, year, articles, abortController }) => {
+export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
-  console.log("Layout render", { loading: chyk.loading, abortController })
   return (
     <div>
       <header>
         <div>
           <Link to={"/"}>home</Link>
           {articles.map(a => (
-            <Link key={a.slug} to={"/" + a.slug} style={link_style}>
+            <Link key={a.slug} to={"/article/" + a.slug} style={link_style}>
               {a.title}
             </Link>
           ))}
@@ -99,6 +98,7 @@ export const Article: FC<TArticleProps> = ({ article }) => (
     <article>{article.content}</article>
   </div>
 )
+
 const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = async ({
   abortController,
   match,
@@ -157,12 +157,11 @@ export const routes: TRouteConfig[] = [
       {
         path: "/long-loading",
         component: LongLoading as FC,
-        exact: true,
         dataKey: "longLoading",
         loadData: longLoadingLoader,
       },
       {
-        path: "/:slug",
+        path: "/article/:slug",
         component: Article as FC,
         exact: true,
         dataKey: "article",
