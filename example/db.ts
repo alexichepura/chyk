@@ -33,6 +33,10 @@ export class DbClient {
     await delay(400)
     return articles
   }
+  getLongLoading = async (signal: AbortSignal) => {
+    await delayWithSignal(5000, signal)
+    return "long loading data"
+  }
 }
 export const apiClient = new DbClient()
 
@@ -42,3 +46,20 @@ export const delay = (ms: number = 10): Promise<void> =>
       resolve()
     }, ms)
   )
+
+function delayWithSignal(ms: number = 10, signal: AbortSignal) {
+  if (signal.aborted) {
+    return Promise.reject(new DOMException("Aborted", "AbortError"))
+  }
+
+  return new Promise((resolve, reject) => {
+    // Something fake async
+    const timeout = window.setTimeout(resolve, ms, "Promise Resolved")
+
+    // Listen for abort event on signal
+    signal.addEventListener("abort", () => {
+      window.clearTimeout(timeout)
+      reject(new DOMException("Aborted", "AbortError"))
+    })
+  })
+}

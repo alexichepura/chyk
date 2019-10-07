@@ -6,10 +6,11 @@ import { Chyk } from "./chyk"
 type TLoadDataProps<M, P = any> = {
   chyk: Chyk
   match: match<M>
-  abortController?: AbortController
+  abortController: AbortController
   props: P
 }
-export type TLoadDataResult<D = any> = D
+export type TLocationData = any
+export type TLoadDataResult<D = TLocationData> = D
 export type TLoadData<D, M, P> = (p: TLoadDataProps<M, P>) => Promise<TLoadDataResult<D>>
 
 export type TRouteConfig = RouteConfig & {
@@ -21,6 +22,7 @@ export type TRouteConfig = RouteConfig & {
 
 export type TDataComponentProps<D, P = any> = RouteComponentProps<P> & {
   route: TRouteConfig
+  abortController?: AbortController
 } & D
 
 type TPromiseConfig = {
@@ -33,7 +35,7 @@ export const loadBranchDataObject = async (
   pathname: string,
   routes: TRouteConfig[],
   props: any,
-  abortController?: AbortController
+  abortController: AbortController
 ): Promise<TLoadDataResult> => {
   const branch = matchRoutes(routes, pathname)
   const promisesConfig: TPromiseConfig[] = branch

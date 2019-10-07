@@ -16,25 +16,33 @@ export type TLayoutData = {
   articles: TArticle[]
 }
 type TLayoutProps = TDataComponentProps<TLayoutData>
-export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
+export const Layout: FC<TLayoutProps> = ({ route, year, articles, abortController }) => {
   const chyk = useChyk()
-  console.log("Layout render", chyk.loading)
+  console.log("Layout render", { loading: chyk.loading, abortController })
   return (
     <div>
       <header>
-        <Link to={"/"}>home</Link>
-        {articles.map(a => (
-          <Link key={a.slug} to={"/" + a.slug} style={link_style}>
-            {a.title}
+        <div>
+          <Link to={"/"}>home</Link>
+          {articles.map(a => (
+            <Link key={a.slug} to={"/" + a.slug} style={link_style}>
+              {a.title}
+            </Link>
+          ))}
+          <Link to={"/article-404"} style={link_style}>
+            Article 404
           </Link>
-        ))}
-        <Link to={"/article-404"} style={link_style}>
-          Article 404
-        </Link>
-        <Link to={"/route/404"} style={link_style}>
-          Route 404
-        </Link>
-        <span style={link_style}>{chyk.loading ? "Loading" : "Loaded"}</span>
+          <Link to={"/route/404"} style={link_style}>
+            Route 404
+          </Link>
+          <span style={link_style}>{chyk.loading ? "Loading" : "Loaded"}</span>
+        </div>
+        <div>
+          <Link to={"/long-loading"}>Long Loading (abort controller)</Link>
+          {/* {abortController ? (
+            <button onClick={() => abortController.abort()}>Abort loading</button>
+          ) : null} */}
+        </div>
       </header>
       <main>
         {chyk.is404 ? <NotFound /> : route.routes && <DataRoutes routes={route.routes} />}
@@ -98,6 +106,27 @@ const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = 
   return { article }
 }
 
+// LongLoading
+type TLongLoadingProps = TDataComponentProps<TLongLoadingData>
+export type TLongLoadingData = {
+  longLoadingData: string
+}
+export const LongLoading: FC<TLongLoadingProps> = ({ longLoadingData }) => (
+  <div>
+    <h1>Long Loading (abort controller)</h1>
+    <article>{longLoadingData}</article>
+  </div>
+)
+const longLoadingLoader: TAppLoadData<Partial<TLongLoadingData>> = async ({
+  abortController,
+  chyk,
+  props: { apiClient },
+}) => {
+  console.log("longLoadingLoader", { loading: chyk.loading, abortController })
+  const longLoadingData = await apiClient.getLongLoading(abortController.signal)
+  return { longLoadingData }
+}
+
 // NOT FOUND
 export const NotFound: FC = () => (
   <div>
@@ -117,6 +146,13 @@ export const routes: TRouteConfig[] = [
         component: Home as FC,
         dataKey: "home",
         loadData: homeLoader,
+      },
+      {
+        path: "/long-loading",
+        component: LongLoading as FC,
+        exact: true,
+        dataKey: "longLoading",
+        loadData: longLoadingLoader,
       },
       {
         path: "/:slug",

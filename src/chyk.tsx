@@ -1,18 +1,18 @@
 import { createBrowserHistory, History, Location } from "history"
-import React, { FC, useState } from "react"
+import React, { FC, useRef, useState } from "react"
 import { hydrate, render } from "react-dom"
 import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
 import { ChykContext, useChyk } from "./hooks"
-import { ensure_component_ready, loadBranchDataObject, TRouteConfig } from "./match"
+import { ensure_component_ready, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
 import { DataRoutes } from "./routes"
 
 export type TChykState = {
-  data?: any
+  data?: TLocationData
   statusCode?: number
 }
 
 export type TChykLocationCtx = {
-  data?: any
+  data?: TLocationData
   abortController?: AbortController
 }
 export type TChykLocationsCtx = Record<string, TChykLocationCtx>
@@ -29,6 +29,9 @@ export class Chyk {
   defaultProps: any
   staticRouterContext: StaticRouterContext = {}
   history: History | null
+  get isBrowser(): boolean {
+    return Boolean(this.history)
+  }
   location: Location | null
   get locationKey(): string {
     return this.location && this.location.key ? this.location.key : "ssr"
@@ -62,19 +65,23 @@ export class Chyk {
     }
   }
 
-  setLocationCtx(locationKey: string, ctx: TChykLocationCtx) {
-    this.locationsCtx = {
-      [locationKey]: ctx,
-    }
+  // private setLocationCtx(locationKey: string, ctx: TChykLocationCtx) {
+  //   this.locationsCtx = {
+  //     [locationKey]: ctx,
+  //   }
+  // }
+  private mergeLocationCtx(locationKey: string, ctx: TChykLocationCtx) {
+    const existing_ctx = this.getLocationCtx(locationKey)
+    this.locationsCtx[locationKey] = { ...existing_ctx, ...ctx }
   }
-  setLocationCtxData(locationKey: string, data: any) {
-    this.setLocationCtx(locationKey, { data })
+  private setLocationCtxData(locationKey: string, data: TLocationData) {
+    this.mergeLocationCtx(locationKey, { data })
   }
 
   getLocationCtx(locationKey: string | undefined = "ssr"): TChykLocationCtx {
     return this.locationsCtx[locationKey]
   }
-  getLocationCtxData(locationKey: string | undefined = "ssr") {
+  private getLocationCtxData(locationKey: string | undefined = "ssr"): TLocationData {
     return this.getLocationCtx(locationKey).data
   }
 
@@ -85,15 +92,27 @@ export class Chyk {
     }
   }
 
-  loadData = async (pathname: string, locationKey: string = "ssr") => {
+  loadData = async (
+    pathname: string,
+    locationKey: string = "ssr"
+  ): Promise<AbortController | undefined> => {
     this.loading = true
-    const abortController = this.history ? new AbortController() : undefined
-    const [data] = await Promise.all([
-      loadBranchDataObject(this, pathname, this.routes, this.defaultProps, abortController),
-      ensure_component_ready(pathname, this.routes),
-    ])
-    this.setLocationCtx(locationKey, { abortController, data })
-    this.loading = false
+    const abortController = this.isBrowser ? new AbortController() : ({} as AbortController) // mock on server
+    this.mergeLocationCtx(locationKey, { abortController })
+    try {
+      const [data] = await Promise.all([
+        loadBranchDataObject(this, pathname, this.routes, this.defaultProps, abortController),
+        ensure_component_ready(pathname, this.routes),
+      ])
+      this.setLocationCtxData(locationKey, data)
+      this.loading = false
+    } catch (err) {
+      if (err.name === "AbortError") {
+        // request was aborted
+        console.log("AbortError", err)
+      }
+    }
+    return abortController
   }
 
   render: FC = () => {
@@ -135,6 +154,7 @@ export class Chyk {
 const ChykPreloader: FC = ({ children }) => {
   const chyk = useChyk()
   const location = useLocation()
+  const prev_location_ref = useRef<Location>(location)
   const [state_location, setLocation] = useState(location)
   // useEffect(() => {
   //   if (chyk.getLocationData(location.key)) {
@@ -146,10 +166,21 @@ const ChykPreloader: FC = ({ children }) => {
   //     setLocation(location)
   //   })
   // }, [location.key])
-
+  // console.log("ChykPreloader", location.key, state_location.key)
+  if (location.key !== state_location.key) {
+    if (prev_location_ref.current.key !== location.key) {
+      const prev_location_ctx = chyk.getLocationCtx(prev_location_ref.current.key)
+      prev_location_ctx.abortController && prev_location_ctx.abortController.abort()
+    }
+    prev_location_ref.current = location
+  }
   if (location.key !== state_location.key && !chyk.getLocationCtx(location.key)) {
     chyk.setStatusCode(200)
-    chyk.loadData(location.pathname, location.key).then(() => {
+    chyk.loadData(location.pathname, location.key).then(loadDataAbortController => {
+      if (loadDataAbortController && loadDataAbortController.signal.aborted) {
+        // going here means loading data is finished, but we don't care anymore
+        return
+      }
       chyk.location = location
       setLocation(location)
     })
