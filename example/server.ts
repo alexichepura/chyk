@@ -14,7 +14,7 @@ server.on("request", async (request, response) => {
     const pathname: string = request.url || ""
     const chyk = new Chyk({ routes, defaultProps: { apiClient } })
     await chyk.loadData(pathname)
-    const html = renderToString(createElement(chyk.renderStatic, { pathname }))
+    const html = renderToString(createElement(chyk.renderStatic))
 
     response.statusCode = chyk.statusCode
     response.end(template({ html, chyk_ctx: chyk.ctx }))

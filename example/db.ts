@@ -31,7 +31,7 @@ export class DbClient {
     return articles
   }
   getLongLoading = async (signal: AbortSignal) => {
-    await delayWithSignal(3000, signal)
+    await delayWithSignal(5000, signal)
     return "long loading data"
   }
 }

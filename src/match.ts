@@ -1,5 +1,5 @@
 import { match, RouteComponentProps } from "react-router"
-import { matchRoutes, RouteConfig } from "react-router-config"
+import { MatchedRoute, RouteConfig } from "react-router-config"
 import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { Chyk } from "./chyk"
 
@@ -32,13 +32,10 @@ type TPromiseConfig = {
 
 export const loadBranchDataObject = async (
   chyk: Chyk,
-  pathname: string,
-  // routes: TRouteConfig[],
-  // props: any,
+  matches: MatchedRoute<{}>[],
   abortController: AbortController
 ): Promise<TLoadDataResult> => {
-  const branch = matchRoutes(chyk.routes, pathname)
-  const promisesConfig: TPromiseConfig[] = branch
+  const promisesConfig: TPromiseConfig[] = matches
     .map(
       ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
         return route.loadData
@@ -62,11 +59,7 @@ export const loadBranchDataObject = async (
   return resultsObject
 }
 
-export function ensure_component_ready(
-  url: string,
-  routes: TRouteConfig[]
-): Promise<React.ComponentType[]> {
-  const matches = matchRoutes(routes, url)
+export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React.ComponentType[]> {
   return Promise.all(
     matches.map(match => {
       const component = match.route.component as (React.ComponentType | TAsyncComponent)
