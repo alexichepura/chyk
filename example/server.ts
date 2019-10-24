@@ -8,8 +8,7 @@ import { routes } from "./app"
 import { apiClient } from "./db"
 
 const port = (PORT && Number(PORT)) || 3000
-const server = createServer()
-server.on("request", async (request, response) => {
+const server = createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
     const chyk = new Chyk({ routes, defaultProps: { apiClient } })

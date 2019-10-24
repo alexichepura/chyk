@@ -4,12 +4,50 @@
 
 ---
 
-Chyk is a framework to build universal SPAs on TypeScript, React.
+Chyk is a microframework to build universal SPAs with React.
+Simplifies and unifies:
 
-## Installing
+- preload route data
+- preload route components
+- passing SSR data to the browser for the immediate hydration
+- aborting data load if switched to another route
+- 404 and other status pages
 
-Install:
+## Install
 
 ```sh
 yarn add chyk
+```
+
+## Usage
+
+### Server
+
+```ts
+createServer(async (request, response) => {
+  try {
+    const pathname: string = request.url || ""
+    const chyk = new Chyk({ routes, defaultProps: { apiClient } })
+    await chyk.loadData(pathname)
+    const html = renderToString(createElement(chyk.renderStatic))
+
+    response.statusCode = chyk.statusCode
+    response.end(template({ html, chyk_ctx: chyk.ctx }))
+  } catch (e) {
+    console.log(e)
+    response.end(e)
+  }
+})
+```
+
+### Browser
+
+```ts
+const chyk = new Chyk({
+  routes,
+  ctx,
+  defaultProps: { apiClient },
+  el: document.getElementById("app"),
+})
+chyk.renderer(createElement(chyk.render), chyk.el)
 ```
