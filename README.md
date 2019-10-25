@@ -52,6 +52,53 @@ const chyk = new Chyk({
 chyk.renderer(createElement(chyk.render), chyk.el)
 ```
 
+### Routes
+
+```ts
+export const routes: TRouteConfig[] = [
+  {
+    component: Layout as FC,
+    dataKey: "layout",
+    loadData: layoutLoader,
+    routes: [
+      {
+        path: "/",
+        exact: true,
+        component: Home as FC,
+        dataKey: "home",
+        loadData: homeLoader,
+      },
+      {
+        path: "/:slug",
+        component: Article as FC,
+        exact: true,
+        dataKey: "article",
+        loadData: articleLoader,
+      },
+      {
+        component: NotFound as FC,
+        loadData: async ({ chyk }) => chyk.set404(),
+      },
+    ],
+  },
+]
+```
+
+### Loaders
+
+```ts
+const layoutLoader: TAppLoadData<TLayoutData> = async ({
+  abortController,
+  props: { apiClient },
+}) => {
+  const [year, articles] = await Promise.all([
+    apiClient.getYear(abortController.signal),
+    apiClient.getArticles(abortController.signal),
+  ])
+  return { year, articles }
+}
+```
+
 ## Example
 
 ```s
