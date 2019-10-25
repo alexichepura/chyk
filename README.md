@@ -15,7 +15,7 @@ Simplifies and unifies:
 
 ## Install
 
-```sh
+```s
 yarn add chyk
 ```
 
@@ -50,4 +50,14 @@ const chyk = new Chyk({
   el: document.getElementById("app"),
 })
 chyk.renderer(createElement(chyk.render), chyk.el)
+```
+
+## Example
+
+```s
+yarn example:server
+```
+
+```s
+yarn example:wds
 ```
