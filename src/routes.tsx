@@ -13,7 +13,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
   return (
     <Switch {...switchProps}>
       {routes.map((route, i) => {
-        const ctx = chyk.getCurrentLocationCtx()
+        const ctx = chyk.currentLocationState
         const keyData = (ctx.data && route.dataKey && ctx.data[route.dataKey]) || undefined
         return (
           <Route

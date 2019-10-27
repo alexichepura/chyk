@@ -7,15 +7,10 @@ import { ChykContext, useChyk } from "./hooks"
 import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
 import { DataRoutes } from "./routes"
 
-type TStatusCode = number
+export type TStatusCode = number
 const SSR_LOCATION_KEY = "ssr"
 
-export type TChykState = {
-  data?: TLocationData
-  statusCode: TStatusCode
-}
-
-export type TChykLocationCtx = {
+export type TChykLocationState = {
   pathname: string
   matches: MatchedRoute<{}>[]
   abortController: AbortController
@@ -24,16 +19,17 @@ export type TChykLocationCtx = {
   statusCode: TStatusCode
   data?: TLocationData
 }
-export type TChykLocationsCtx = Record<string, TChykLocationCtx>
+export type TChykLocationsStates = Record<string, TChykLocationState>
 
-type TChykProps = {
+type TChykProps<D = any> = {
   routes: TRouteConfig[]
   el?: HTMLElement | null
-  ctx?: TChykState
-  defaultProps?: any
+  data?: TLocationData
+  statusCode?: TStatusCode
+  deps?: D
 }
 
-export class Chyk {
+export class Chyk<D = any> {
   private _el: HTMLElement | undefined | null = null
   get el(): HTMLElement {
     if (!this._el) {
@@ -45,21 +41,20 @@ export class Chyk {
   history: History | null
   staticRouterContext: StaticRouterContext = {}
   routes: TRouteConfig[]
-  defaultProps: any
+  deps: D | undefined
   get isBrowser(): boolean {
     return Boolean(this.history)
   }
   get loading(): boolean {
-    return Object.values(this.locationCtxs).some(ctx => ctx.loading)
+    return Object.values(this.locationStates).some(state => state.loading)
   }
 
-  locationCtxs: TChykLocationsCtx = {}
+  private locationStates: TChykLocationsStates = {}
+  private currentLocationKey: string = SSR_LOCATION_KEY
 
-  currentLocationKey: string = SSR_LOCATION_KEY
-
-  constructor(props: TChykProps) {
+  constructor(props: TChykProps<D>) {
     this.routes = props.routes
-    this.defaultProps = props.defaultProps
+    this.deps = props.deps
     this._el = props.el
     this.history = props.el ? createBrowserHistory() : null
     if (this.history) {
@@ -68,25 +63,22 @@ export class Chyk {
       } else {
         this.history.location.key = SSR_LOCATION_KEY
       }
-      if (props.ctx) {
-        this.createLocationCtxFromState(props.ctx, this.history.location)
-      }
+      this.mergeLocationState(this.currentLocationKey, {
+        data: props.data,
+        location: this.history.location,
+        ...(props.statusCode ? { statusCode: props.statusCode } : null),
+      })
     }
   }
-  createLocationCtxFromState(state: TChykState, location: Location) {
-    this.mergeLocationCtx(this.currentLocationKey, {
-      ...state,
-      location,
-    })
-  }
-  upsertLocationCtxLoading(
+
+  upsertLocationStateLoading(
     key: string,
     abortController: AbortController,
     pathname: string,
     matches: MatchedRoute<{}>[],
     location: Location
   ) {
-    this.mergeLocationCtx(key, {
+    this.mergeLocationState(key, {
       matches,
       pathname,
       location,
@@ -95,36 +87,34 @@ export class Chyk {
       loading: true,
     })
   }
-  updateLocationCtxLoaded(key: string, data: any) {
-    this.mergeLocationCtx(key, {
+  updateLocationStateLoaded(key: string, data: any) {
+    this.mergeLocationState(key, {
       data,
       loading: false,
     })
   }
-  private mergeLocationCtx(locationKey: string, ctx: Partial<TChykLocationCtx>) {
-    const _ctx = this.locationCtxs[locationKey] || {}
-    this.locationCtxs[locationKey] = Object.assign(_ctx, ctx)
+  private mergeLocationState(locationKey: string, state: Partial<TChykLocationState>) {
+    const _state = this.locationStates[locationKey] || {}
+    this.locationStates[locationKey] = Object.assign(_state, state)
   }
 
-  getLocationCtx(locationKey: string | undefined): TChykLocationCtx {
+  getLocationState(locationKey: string | undefined): TChykLocationState {
     if (!locationKey) {
       throw "No locationKey"
     }
-    return this.locationCtxs[locationKey]
+    return this.locationStates[locationKey]
   }
-  getCurrentLocationCtx(): TChykLocationCtx {
-    return this.locationCtxs[this.currentLocationKey]
+  get currentLocationState(): TChykLocationState {
+    return this.locationStates[this.currentLocationKey]
   }
-  cleanLocationCtx(locationKey: string | undefined = SSR_LOCATION_KEY) {
-    delete this.locationCtxs[locationKey]
+  get statusCode(): TStatusCode {
+    return this.currentLocationState.statusCode
   }
-
-  get ctx() {
-    const ctx = this.getCurrentLocationCtx()
-    return {
-      statusCode: ctx.statusCode,
-      data: ctx.data,
-    }
+  get data(): any {
+    return this.currentLocationState.data
+  }
+  cleanLocationState(locationKey: string | undefined = SSR_LOCATION_KEY) {
+    delete this.locationStates[locationKey]
   }
 
   loadData = async (_location: string | Location): Promise<boolean> => {
@@ -136,7 +126,7 @@ export class Chyk {
     const { key = SSR_LOCATION_KEY, pathname } = location
 
     const matches = matchRoutes(this.routes, pathname)
-    this.upsertLocationCtxLoading(key, abortController, pathname, matches, location)
+    this.upsertLocationStateLoading(key, abortController, pathname, matches, location)
     let data
     data = (await Promise.all([
       loadBranchDataObject(this, matches, abortController),
@@ -147,26 +137,23 @@ export class Chyk {
       throw "No location key"
     }
     this.currentLocationKey = key
-    this.updateLocationCtxLoaded(key, data)
+    this.updateLocationStateLoaded(key, data)
     return true
   }
   abortLoading() {
-    Object.values(this.locationCtxs).forEach(ctx => {
-      ctx.abortController && ctx.abortController.abort()
-      ctx.loading = false
+    Object.values(this.locationStates).forEach(state => {
+      state.abortController && state.abortController.abort()
+      state.loading = false
     })
   }
 
-  get statusCode(): TStatusCode {
-    return this.getCurrentLocationCtx().statusCode
-  }
   get is404(): boolean {
     return this.statusCode === 404
   }
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.locationCtxs).forEach(ctx => {
-      if (ctx.loading) {
-        ctx.statusCode = statusCode
+    Object.values(this.locationStates).forEach(state => {
+      if (state.loading) {
+        state.statusCode = statusCode
       }
     })
   }
@@ -187,10 +174,12 @@ export class Chyk {
   }
 
   renderStatic: FC = () => {
-    const ctx = this.getCurrentLocationCtx()
     return (
       <ChykContext.Provider value={this}>
-        <StaticRouter location={ctx.location} context={this.staticRouterContext}>
+        <StaticRouter
+          location={this.currentLocationState.location}
+          context={this.staticRouterContext}
+        >
           <DataRoutes routes={this.routes} />
         </StaticRouter>
       </ChykContext.Provider>
@@ -213,11 +202,11 @@ const ChykPreloader: FC = ({ children }) => {
   if (render_key !== location.key) {
     chyk.abortLoading()
 
-    if (!chyk.getLocationCtx(location.key)) {
+    if (!chyk.getLocationState(location.key)) {
       chyk
         .loadData(location)
         .then(() => {
-          chyk.cleanLocationCtx(render_key)
+          chyk.cleanLocationState(render_key)
           set_render_key(location.key)
         })
         .catch(err => {
@@ -231,6 +220,5 @@ const ChykPreloader: FC = ({ children }) => {
     }
   }
 
-  const ctx = chyk.getCurrentLocationCtx()
-  return <Route location={ctx.location} render={() => children} />
+  return <Route location={chyk.currentLocationState.location} render={() => children} />
 }

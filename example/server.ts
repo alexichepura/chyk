@@ -3,20 +3,20 @@ const { WDS_PORT, PORT } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
-import { Chyk, TChykState } from "../src/chyk"
-import { routes } from "./app"
-import { apiClient } from "./db"
+import { Chyk } from "../src/chyk"
+import { routes, TDeps } from "./app"
+import { DbClient } from "./db"
 
 const port = (PORT && Number(PORT)) || 3000
 const server = createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
-    const chyk = new Chyk({ routes, defaultProps: { apiClient } })
+    const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
     await chyk.loadData(pathname)
     const html = renderToString(createElement(chyk.renderStatic))
-
-    response.statusCode = chyk.statusCode
-    response.end(template({ html, chyk_ctx: chyk.ctx }))
+    const { data, statusCode } = chyk.currentLocationState
+    response.statusCode = statusCode
+    response.end(template({ html, data, statusCode }))
   } catch (e) {
     console.log(e)
     response.end(e)
@@ -29,7 +29,8 @@ server.listen(port, () => {
 
 type TTemplateProps = {
   html: string
-  chyk_ctx: TChykState
+  data: any
+  statusCode: number
 }
 const template = (props: TTemplateProps) => `
 <!DOCTYPE html>
@@ -42,7 +43,8 @@ const template = (props: TTemplateProps) => `
 </head>
 <body>
   <div id="app">${props.html}</div>
-  <script>window.chyk_ctx = ${JSON.stringify(props.chyk_ctx)}</script>
+  <script>window.ssr_data = ${JSON.stringify(props.data)}</script>
+  <script>window.ssr_statusCode = ${props.statusCode}</script>
   <script src="${
     WDS_PORT ? `http://localhost:${WDS_PORT}/dist/browser.js` : "/browser.js"
   }"></script>

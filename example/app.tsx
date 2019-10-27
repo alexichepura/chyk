@@ -1,12 +1,12 @@
 import React, { FC } from "react"
 import { Link } from "react-router-dom"
 import { useChyk } from "../src"
-import { TDataComponentProps, TLoadData, TRouteConfig } from "../src/match"
+import { TDataComponentProps, TLoadData as TChykLoadData, TRouteConfig } from "../src/match"
 import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
-export type TChykDefaultProps = { apiClient: DbClient }
-type TAppLoadData<T, M = any> = TLoadData<T, M, TChykDefaultProps>
+export type TDeps = { apiSdk: DbClient }
+type TLoadData<T, M = any> = TChykLoadData<T, M, TDeps>
 
 const link_style: React.CSSProperties = { marginLeft: "1rem" }
 
@@ -50,14 +50,11 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
     </div>
   )
 }
-const layoutLoader: TAppLoadData<TLayoutData> = async ({
-  abortController,
-  props: { apiClient },
-}) => {
+const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSdk }) => {
   console.log("layoutLoader")
   const [year, articles] = await Promise.all([
-    apiClient.getYear(abortController.signal),
-    apiClient.getArticles(abortController.signal),
+    apiSdk.getYear(abortController.signal),
+    apiSdk.getArticles(abortController.signal),
   ])
   return { year, articles }
 }
@@ -80,9 +77,9 @@ export const Home: FC<THomeProps> = ({ articles }) => (
     </div>
   </div>
 )
-const homeLoader: TAppLoadData<THomeData> = async ({ abortController, props: { apiClient } }) => {
+const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk }) => {
   console.log("homeLoader")
-  const articles = await apiClient.getArticles(abortController.signal)
+  const articles = await apiSdk.getArticles(abortController.signal)
   return { articles }
 }
 
@@ -101,14 +98,12 @@ export const Article: FC<TArticleProps> = props => {
   )
 }
 
-const articleLoader: TAppLoadData<Partial<TArticleData>, TArticleMatchParams> = async ({
-  abortController,
-  match,
-  chyk,
-  props: { apiClient },
-}) => {
+const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = async (
+  { abortController, match, chyk },
+  { apiSdk }
+) => {
   console.log("articleLoader")
-  const article = await apiClient.getArticle(match.params.slug, abortController.signal)
+  const article = await apiSdk.getArticle(match.params.slug, abortController.signal)
   if (!article) {
     chyk.set404()
   }
@@ -126,12 +121,12 @@ export const LongLoading: FC<TLongLoadingProps> = ({ longLoadingData }) => (
     <article>{longLoadingData}</article>
   </div>
 )
-const longLoadingLoader: TAppLoadData<Partial<TLongLoadingData>> = async ({
-  abortController,
-  props: { apiClient },
-}) => {
+const longLoadingLoader: TLoadData<Partial<TLongLoadingData>> = async (
+  { abortController },
+  { apiSdk }
+) => {
   console.log("longLoadingLoader")
-  const longLoadingData = await apiClient.getLongLoading(abortController.signal)
+  const longLoadingData = await apiSdk.getLongLoading(abortController.signal)
   return { longLoadingData }
 }
 

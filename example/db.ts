@@ -35,7 +35,6 @@ export class DbClient {
     return "long loading data"
   }
 }
-export const apiClient = new DbClient()
 
 export const delay = (ms: number = 10): Promise<void> =>
   new Promise(resolve =>

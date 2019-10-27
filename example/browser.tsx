@@ -1,16 +1,15 @@
 import { createElement } from "react"
-import { Chyk, TChykState } from "../src/chyk"
-import { routes } from "./app"
-import { apiClient } from "./db"
-
-const ctx = (window as any).chyk_ctx as TChykState
+import { Chyk } from "../src/chyk"
+import { routes, TDeps } from "./app"
+import { DbClient } from "./db"
 
 const init = async () => {
-  const chyk = new Chyk({
+  const chyk = new Chyk<TDeps>({
     routes,
-    ctx,
-    defaultProps: { apiClient },
     el: document.getElementById("app"),
+    deps: { apiSdk: new DbClient() },
+    data: (window as any).ssr_data,
+    statusCode: (window as any).ssr_statusCode,
   })
   chyk.renderer(createElement(chyk.render), chyk.el)
 }

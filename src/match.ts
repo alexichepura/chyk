@@ -3,15 +3,17 @@ import { MatchedRoute, RouteConfig } from "react-router-config"
 import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { Chyk } from "./chyk"
 
-type TLoadDataProps<M, P = any> = {
+type TLoadDataProps<M> = {
   chyk: Chyk
   match: match<M>
   abortController: AbortController
-  props: P
 }
 export type TLocationData = any
 export type TLoadDataResult<D = TLocationData> = D
-export type TLoadData<D, M, P> = (p: TLoadDataProps<M, P>) => Promise<TLoadDataResult<D>>
+export type TLoadData<D, M, Deps> = (
+  options: TLoadDataProps<M>,
+  deps: Deps
+) => Promise<TLoadDataResult<D>>
 
 export type TRouteConfig = RouteConfig & {
   loadData?: TLoadData<any, any, any>
@@ -41,7 +43,7 @@ export const loadBranchDataObject = async (
         return route.loadData
           ? {
               dataKey: route.dataKey,
-              promise: route.loadData({ chyk, match, abortController, props: chyk.defaultProps }),
+              promise: route.loadData({ chyk, match, abortController }, chyk.deps),
             }
           : (Promise.resolve(null) as any)
       }
