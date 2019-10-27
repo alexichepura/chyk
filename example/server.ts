@@ -1,22 +1,28 @@
 require("dotenv").config()
-const { WDS_PORT, PORT } = process.env
+const { WDS_PORT, PORT, DISABLE_SSR } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 import { Chyk } from "../src/chyk"
 import { routes, TDeps } from "./app"
 import { DbClient } from "./db"
+import { ChykStaticComponent } from "../src/render"
 
 const port = (PORT && Number(PORT)) || 3000
 const server = createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
     const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
-    await chyk.loadData(pathname)
-    const html = renderToString(createElement(chyk.renderStatic))
-    const { data, statusCode } = chyk.currentLocationState
-    response.statusCode = statusCode
-    response.end(template({ html, data, statusCode }))
+    if (DISABLE_SSR === "true") {
+      response.statusCode = 200
+      response.end(template({ html: "", data: null, statusCode: 200 }))
+    } else {
+      await chyk.loadData(pathname)
+      const html = renderToString(createElement(ChykStaticComponent, { chyk }))
+      const { data, statusCode } = chyk.currentLocationState
+      response.statusCode = statusCode
+      response.end(template({ html, data, statusCode }))
+    }
   } catch (e) {
     console.log(e)
     response.end(e)

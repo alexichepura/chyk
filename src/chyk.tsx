@@ -1,11 +1,8 @@
 import { createBrowserHistory, createLocation, History, Location } from "history"
-import React, { FC, useState } from "react"
-import { hydrate, render, Renderer } from "react-dom"
-import { Route, Router, StaticRouter, StaticRouterContext, useLocation } from "react-router"
+import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
-import { ChykContext, useChyk } from "./hooks"
 import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
-import { DataRoutes } from "./routes"
+import { chykHydrateOrRender } from "./render"
 
 export type TStatusCode = number
 const SSR_LOCATION_KEY = "ssr"
@@ -68,7 +65,18 @@ export class Chyk<D = any> {
         location: this.history.location,
         ...(props.statusCode ? { statusCode: props.statusCode } : null),
       })
+      this.loadAndRender(Boolean(props.data))
     }
+  }
+
+  async loadAndRender(disableDataLoading: boolean) {
+    if (!this.history) {
+      throw "No history"
+    }
+    if (!disableDataLoading) {
+      await this.loadData(this.history.location.pathname)
+    }
+    chykHydrateOrRender(this)
   }
 
   upsertLocationStateLoading(
@@ -160,65 +168,4 @@ export class Chyk<D = any> {
   set404 = (): void => {
     this.setStatus(404)
   }
-
-  render: FC = () => {
-    return (
-      <ChykContext.Provider value={this}>
-        <Router history={this.history!}>
-          <ChykPreloader>
-            <DataRoutes routes={this.routes} />
-          </ChykPreloader>
-        </Router>
-      </ChykContext.Provider>
-    )
-  }
-
-  renderStatic: FC = () => {
-    return (
-      <ChykContext.Provider value={this}>
-        <StaticRouter
-          location={this.currentLocationState.location}
-          context={this.staticRouterContext}
-        >
-          <DataRoutes routes={this.routes} />
-        </StaticRouter>
-      </ChykContext.Provider>
-    )
-  }
-
-  get renderer(): Renderer {
-    if (!this.el) {
-      throw "No renderer for no element"
-    }
-    return this.el.childNodes.length === 0 ? render : hydrate
-  }
-}
-
-const ChykPreloader: FC = ({ children }) => {
-  const chyk = useChyk()
-  const location = useLocation()
-  const [render_key, set_render_key] = useState(location.key)
-
-  if (render_key !== location.key) {
-    chyk.abortLoading()
-
-    if (!chyk.getLocationState(location.key)) {
-      chyk
-        .loadData(location)
-        .then(() => {
-          chyk.cleanLocationState(render_key)
-          set_render_key(location.key)
-        })
-        .catch(err => {
-          if (err.name === "AbortError") {
-            // request was aborted, so we don't care about this error
-            console.log("AbortError", err)
-          } else {
-            throw err
-          }
-        })
-    }
-  }
-
-  return <Route location={chyk.currentLocationState.location} render={() => children} />
 }
