@@ -27,12 +27,12 @@ yarn add chyk
 createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
-    const chyk = new Chyk({ routes, defaultProps: { apiClient } })
+    const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
     await chyk.loadData(pathname)
-    const html = renderToString(createElement(chyk.renderStatic))
-
-    response.statusCode = chyk.statusCode
-    response.end(template({ html, chyk_ctx: chyk.ctx }))
+    const html = renderToString(createElement(ChykStaticComponent, { chyk }))
+    const { data, statusCode } = chyk.currentLocationState
+    response.statusCode = statusCode
+    response.end(template({ html, data, statusCode }))
   } catch (e) {
     console.log(e)
     response.end(e)
@@ -43,13 +43,13 @@ createServer(async (request, response) => {
 ### Browser
 
 ```ts
-const chyk = new Chyk({
+new Chyk<TDeps>({
   routes,
-  ctx,
-  defaultProps: { apiClient },
+  data: (window as any).ssr_data,
+  statusCode: (window as any).ssr_statusCode,
   el: document.getElementById("app"),
+  deps: { apiSdk: new DbClient() },
 })
-chyk.renderer(createElement(chyk.render), chyk.el)
 ```
 
 ### Routes
