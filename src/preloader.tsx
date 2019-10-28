@@ -30,3 +30,4 @@ export const ChykPreloader: FC = ({ children }) => {
 
   return <Route location={chyk.currentLocationState.location} render={() => children} />
 }
+ChykPreloader.displayName = "ChykPreloader"

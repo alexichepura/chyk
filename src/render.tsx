@@ -35,6 +35,7 @@ export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
     </ChykContext.Provider>
   )
 }
+ChykComponent.displayName = "ChykComponent"
 
 export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   return (
@@ -48,3 +49,4 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
     </ChykContext.Provider>
   )
 }
+ChykStaticComponent.displayName = "ChykStaticComponent"

@@ -46,3 +46,4 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
     </Switch>
   )
 }
+DataRoutes.displayName = "DataRoutes"
