@@ -3,6 +3,7 @@ import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
 import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
 import { chykHydrateOrRender } from "./render"
+import { ComponentType } from "react"
 
 export type TStatusCode = number
 const SSR_LOCATION_KEY = "ssr"
@@ -24,6 +25,7 @@ type TChykProps<D = any> = {
   data?: TLocationData
   statusCode?: TStatusCode
   deps?: D
+  component?: ComponentType
 }
 
 export class Chyk<D = any> {
@@ -39,6 +41,7 @@ export class Chyk<D = any> {
   staticRouterContext: StaticRouterContext = {}
   routes: TRouteConfig[]
   deps: D | undefined
+  component?: ComponentType
   get isBrowser(): boolean {
     return Boolean(this.history)
   }
@@ -52,6 +55,7 @@ export class Chyk<D = any> {
   constructor(props: TChykProps<D>) {
     this.routes = props.routes
     this.deps = props.deps
+    this.component = props.component
     this._el = props.el
     this.history = props.el ? createBrowserHistory() : null
     if (this.history) {

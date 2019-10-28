@@ -11,7 +11,17 @@ export const chykHydrateOrRender = (chyk: Chyk) => {
     throw "No renderer for no element"
   }
   const renderer = chyk.el.childNodes.length === 0 ? render : hydrate
-  renderer(<ChykComponent chyk={chyk} />, chyk.el)
+  const WrapperComponent = chyk.component
+  if (WrapperComponent) {
+    renderer(
+      <WrapperComponent>
+        <ChykComponent chyk={chyk} />
+      </WrapperComponent>,
+      chyk.el
+    )
+  } else {
+    renderer(<ChykComponent chyk={chyk} />, chyk.el)
+  }
 }
 
 export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
