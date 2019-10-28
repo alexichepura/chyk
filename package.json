@@ -1,12 +1,12 @@
 {
   "author": "Palessit",
   "dependencies": {
-    "history": "^4",
-    "react": "^16",
-    "react-dom": "^16",
-    "react-router": "^5",
-    "react-router-config": "^5",
-    "react-router-dom": "^5"
+    "history": "^4.9.0",
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0",
+    "react-router": "^5.0.1",
+    "react-router-config": "^5.0.1",
+    "react-router-dom": "^5.0.1"
   },
   "devDependencies": {
     "@types/history": "^4.7.3",
@@ -46,5 +46,5 @@
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.8.5"
+  "version": "0.8.6"
 }
