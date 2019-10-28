@@ -34,7 +34,7 @@ createServer(async (request, response) => {
     response.statusCode = statusCode
     response.end(template({ html, data, statusCode }))
   } catch (e) {
-    console.log(e)
+    logger(e)
     response.end(e)
   }
 })
@@ -45,10 +45,10 @@ createServer(async (request, response) => {
 ```ts
 new Chyk<TDeps>({
   routes,
+  deps: { apiSdk: new DbClient() },
   data: (window as any).ssr_data,
   statusCode: (window as any).ssr_statusCode,
   el: document.getElementById("app"),
-  deps: { apiSdk: new DbClient() },
 })
 ```
 
@@ -87,10 +87,7 @@ export const routes: TRouteConfig[] = [
 ### Loaders
 
 ```ts
-const layoutLoader: TAppLoadData<TLayoutData> = async ({
-  abortController,
-  props: { apiClient },
-}) => {
+const layoutLoader: TAppLoadData<TLayoutData> = async ({ abortController }, { apiClient }) => {
   const [year, articles] = await Promise.all([
     apiClient.getYear(abortController.signal),
     apiClient.getArticles(abortController.signal),
