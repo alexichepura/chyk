@@ -1,6 +1,6 @@
 import React, { FC } from "react"
 import { render, hydrate } from "react-dom"
-import { Chyk } from "../src/chyk"
+import { Chyk } from "./chyk"
 import { ChykContext } from "./hooks"
 import { Router, StaticRouter } from "react-router"
 import { DataRoutes } from "./routes"
