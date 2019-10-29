@@ -1,5 +1,6 @@
 {
   "author": "Palessit",
+  "description": "Chyk is a microframework to build universal SPAs with React.",
   "devDependencies": {
     "@types/history": "^4.7.3",
     "@types/node": "^12.7.11",
@@ -42,6 +43,17 @@
     "react-router-config": "5.x",
     "react-router-dom": "5.x"
   },
+  "repository": "github:palessit/chyk",
+  "keywords": [
+    "microframework",
+    "universal",
+    "SPA",
+    "SSR"
+  ],
+  "bugs": {
+    "url": "https://github.com/palessit/chyk/issues"
+  },
+  "homepage": "https://github.com/palessit/chyk",
   "scripts": {
     "build": "tsc",
     "clean": "rm -r dist",
@@ -52,5 +64,5 @@
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.8.7"
+  "version": "0.8.8"
 }
