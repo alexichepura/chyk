@@ -1,7 +1,7 @@
 import React, { FC } from "react"
 import { Link } from "react-router-dom"
 import { useChyk } from "../src"
-import { TDataComponentProps, TLoadData as TChykLoadData, TRouteConfig } from "../src/match"
+import { TRouteComponentProps, TLoadData as TChykLoadData, TRouteConfig } from "../src/match"
 import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
@@ -15,7 +15,7 @@ export type TLayoutData = {
   year: number
   articles: TArticle[]
 }
-type TLayoutProps = TDataComponentProps<TLayoutData>
+type TLayoutProps = TRouteComponentProps<TLayoutData>
 export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
   return (
@@ -63,7 +63,7 @@ const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSd
 export type THomeData = {
   articles: TArticle[]
 }
-type THomeProps = TDataComponentProps<THomeData>
+type THomeProps = TRouteComponentProps<THomeData>
 export const Home: FC<THomeProps> = ({ articles }) => (
   <div>
     <h1>Page Home</h1>
@@ -85,7 +85,7 @@ const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk })
 
 // ARTICLE
 type TArticleMatchParams = { slug: string }
-type TArticleProps = TDataComponentProps<TArticleData, TArticleMatchParams>
+type TArticleProps = TRouteComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
   article: TArticle
 }
@@ -111,7 +111,7 @@ const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = asy
 }
 
 // LongLoading
-type TLongLoadingProps = TDataComponentProps<TLongLoadingData>
+type TLongLoadingProps = TRouteComponentProps<TLongLoadingData>
 export type TLongLoadingData = {
   longLoadingData: string
 }

@@ -22,7 +22,7 @@ export type TRouteConfig = RouteConfig & {
   abortController?: AbortController
 }
 
-export type TDataComponentProps<D, P = any> = RouteComponentProps<P> & {
+export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
   route: TRouteConfig
   abortController?: AbortController
 } & D
