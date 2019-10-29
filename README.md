@@ -5,13 +5,21 @@
 ---
 
 Chyk is a microframework to build universal SPAs with React.
-Simplifies and unifies:
+
+## Features
 
 - preload route data
-- preload route components
+- code splitting via async components
 - passing SSR data to the browser for the immediate hydration
-- aborting data load if switched to another route
+- aborting data load using [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort) if switched to another route
 - 404 and other status pages
+
+## Bonus
+
+- Written in TypeScript
+- Zero dependencies
+- Only peer dependencies: react, react-dom, react-router, react-router-dom, react-router-config, history
+- [**2.4kB gzipped**](https://bundlephobia.com/result?p=chyk)
 
 ## Install
 
@@ -21,13 +29,15 @@ yarn add chyk
 
 ## Usage
 
+[Example](https://github.com/palessit/chyk/tree/master/example)
+
 ### Server
 
 ```ts
 createServer(async (request, response) => {
   try {
-    const pathname: string = request.url || ""
-    const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
+    const pathname = request.url || ""
+    const chyk = new Chyk({ routes, deps: { apiSdk: new DbClient() } })
     await chyk.loadData(pathname)
     const html = renderToString(createElement(ChykStaticComponent, { chyk }))
     const { data, statusCode } = chyk.currentLocationState
@@ -43,11 +53,11 @@ createServer(async (request, response) => {
 ### Browser
 
 ```ts
-new Chyk<TDeps>({
+new Chyk({
   routes,
   deps: { apiSdk: new DbClient() },
-  data: (window as any).ssr_data,
-  statusCode: (window as any).ssr_statusCode,
+  data: window.ssr_data,
+  statusCode: window.ssr_statusCode,
   el: document.getElementById("app"),
 })
 ```
@@ -55,28 +65,28 @@ new Chyk<TDeps>({
 ### Routes
 
 ```ts
-export const routes: TRouteConfig[] = [
+export const routes = [
   {
-    component: Layout as FC,
+    component: Layout,
     dataKey: "layout",
     loadData: layoutLoader,
     routes: [
       {
         path: "/",
         exact: true,
-        component: Home as FC,
+        component: Home,
         dataKey: "home",
         loadData: homeLoader,
       },
       {
         path: "/:slug",
-        component: Article as FC,
+        component: Article,
         exact: true,
         dataKey: "article",
         loadData: articleLoader,
       },
       {
-        component: NotFound as FC,
+        component: NotFound,
         loadData: async ({ chyk }) => chyk.set404(),
       },
     ],
@@ -87,7 +97,7 @@ export const routes: TRouteConfig[] = [
 ### Loaders
 
 ```ts
-const layoutLoader: TAppLoadData<TLayoutData> = async ({ abortController }, { apiClient }) => {
+const layoutLoader = async ({ abortController }, { apiClient }) => {
   const [year, articles] = await Promise.all([
     apiClient.getYear(abortController.signal),
     apiClient.getArticles(abortController.signal),
