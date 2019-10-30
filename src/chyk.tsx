@@ -79,6 +79,9 @@ export class Chyk<D = any> {
     }
     if (!disableDataLoading) {
       await this.loadData(this.history.location.pathname)
+    } else {
+      const matches = matchRoutes(this.routes, this.history.location.pathname)
+      await loadBranchComponents(matches)
     }
     chykHydrateOrRender(this)
   }
