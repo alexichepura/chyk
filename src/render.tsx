@@ -25,9 +25,12 @@ export const chykHydrateOrRender = (chyk: Chyk) => {
 }
 
 export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
+  if (!chyk.history) {
+    throw "No history"
+  }
   return (
     <ChykContext.Provider value={chyk}>
-      <Router history={chyk.history!}>
+      <Router history={chyk.history}>
         <ChykPreloader>
           <DataRoutes routes={chyk.routes} />
         </ChykPreloader>
