@@ -27,7 +27,7 @@
     "webpack-dev-server": "^3.8.2"
   },
   "files": [
-    "dist/*(*.ts|*.js)",
+    "dist/*(*.ts|*.js|*.map)",
     "package.json",
     "LICENSE",
     "README.md"
@@ -64,5 +64,5 @@
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.8.10"
+  "version": "0.8.11"
 }
