@@ -78,7 +78,7 @@ export class Chyk<D = any> {
       throw "No history"
     }
     if (!disableDataLoading) {
-      await this.loadData(this.history.location.pathname)
+      await this.loadData(this.history.location)
     } else {
       const matches = matchRoutes(this.routes, this.history.location.pathname)
       await loadBranchComponents(matches)
