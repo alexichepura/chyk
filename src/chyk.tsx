@@ -26,6 +26,7 @@ type TChykProps<D = any> = {
   statusCode?: TStatusCode
   deps: D extends undefined ? never : D
   component?: ComponentType
+  history?: History
 }
 
 export class Chyk<D = any> {
@@ -57,7 +58,7 @@ export class Chyk<D = any> {
     this.deps = props.deps
     this.component = props.component
     this._el = props.el
-    this.history = props.el ? createBrowserHistory() : null
+    this.history = props.history || props.el ? createBrowserHistory() : null
     if (this.history) {
       if (this.history.location.key) {
         this.currentLocationKey = this.history.location.key
