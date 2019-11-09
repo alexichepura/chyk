@@ -24,7 +24,7 @@ type TChykProps<D = any> = {
   el?: HTMLElement | null
   data?: TLocationData
   statusCode?: TStatusCode
-  deps?: D
+  deps: D extends undefined ? never : D
   component?: ComponentType
 }
 
@@ -40,7 +40,7 @@ export class Chyk<D = any> {
   history: History | null
   staticRouterContext: StaticRouterContext = {}
   routes: TRouteConfig[]
-  deps: D | undefined
+  deps: D extends undefined ? never : D
   component?: ComponentType
   get isBrowser(): boolean {
     return Boolean(this.history)
