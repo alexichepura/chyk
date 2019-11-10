@@ -18,20 +18,10 @@ export const ChykPreloader: FC = ({ children }) => {
     const key = location.key || createKey() // location.key is undefined on history back
     location.key = key
     if (!chyk.getLocationState(key)) {
-      chyk
-        .loadData(location)
-        .then(() => {
-          chyk.cleanLocationState(render_key)
-          set_render_key(key)
-        })
-        .catch(err => {
-          if (err.name === "AbortError") {
-            // request was aborted, so we don't care about this error
-            console.log("AbortError", err)
-          } else {
-            throw err
-          }
-        })
+      chyk.loadData(location).then(() => {
+        chyk.cleanLocationState(render_key)
+        set_render_key(key)
+      })
     }
   }
 

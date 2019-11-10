@@ -27,6 +27,7 @@ type TChykProps<D = any> = {
   deps: D extends undefined ? never : D
   component?: ComponentType
   history?: History
+  onLoadError?: (err: Error) => void
 }
 
 export class Chyk<D = any> {
@@ -39,6 +40,9 @@ export class Chyk<D = any> {
   }
 
   history: History | null
+  onLoadError: (err: Error) => void = err => {
+    throw err
+  }
   staticRouterContext: StaticRouterContext = {}
   routes: TRouteConfig[]
   deps: D extends undefined ? never : D
@@ -59,6 +63,9 @@ export class Chyk<D = any> {
     this.component = props.component
     this._el = props.el
     this.history = props.history || props.el ? createBrowserHistory() : null
+    if (props.onLoadError) {
+      this.onLoadError = props.onLoadError
+    }
     if (this.history) {
       if (this.history.location.key) {
         this.currentLocationKey = this.history.location.key
@@ -133,28 +140,35 @@ export class Chyk<D = any> {
     delete this.locationStates[locationKey]
   }
 
-  loadData = async (_location: string | Location): Promise<boolean> => {
-    const abortController = this.isBrowser
-      ? new AbortController()
-      : ({ signal: { aborted: false } } as AbortController) // mock on server
+  loadData = async (_location: string | Location): Promise<void> => {
+    try {
+      const abortController = this.isBrowser
+        ? new AbortController()
+        : ({ signal: { aborted: false } } as AbortController) // mock on server
 
-    const location = typeof _location === "string" ? createLocation(_location) : _location
-    const { key = SSR_LOCATION_KEY, pathname } = location
+      const location = typeof _location === "string" ? createLocation(_location) : _location
+      const { key = SSR_LOCATION_KEY, pathname } = location
 
-    const matches = matchRoutes(this.routes, pathname)
-    this.upsertLocationStateLoading(key, abortController, pathname, matches, location)
-    let data
-    data = (await Promise.all([
-      loadBranchDataObject(this, matches, abortController),
-      loadBranchComponents(matches),
-    ]))[0]
+      const matches = matchRoutes(this.routes, pathname)
+      this.upsertLocationStateLoading(key, abortController, pathname, matches, location)
+      const [data] = await Promise.all([
+        loadBranchDataObject(this, matches, abortController),
+        loadBranchComponents(matches),
+      ])
 
-    if (!key) {
-      throw "No location key"
+      if (!key) {
+        throw "No location key"
+      }
+      this.currentLocationKey = key
+      this.updateLocationStateLoaded(key, data)
+    } catch (err) {
+      if (err.name === "AbortError") {
+        // request was aborted, so we don't care about this error
+        // console.log("AbortError", err)
+      } else {
+        this.onLoadError(err)
+      }
     }
-    this.currentLocationKey = key
-    this.updateLocationStateLoaded(key, data)
-    return true
   }
   abortLoading() {
     Object.values(this.locationStates).forEach(state => {
