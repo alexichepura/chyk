@@ -6,7 +6,6 @@ import { chykHydrateOrRender } from "./render"
 import { ComponentType } from "react"
 
 export type TStatusCode = number
-const SSR_LOCATION_KEY = "ssr"
 
 export type TChykLocationState = {
   pathname: string
@@ -55,7 +54,7 @@ export class Chyk<D = any> {
   }
 
   private locationStates: TChykLocationsStates = {}
-  private currentLocationKey: string = SSR_LOCATION_KEY
+  private location: Location = { pathname: "" } as any
 
   constructor(props: TChykProps<D>) {
     this.routes = props.routes
@@ -67,12 +66,8 @@ export class Chyk<D = any> {
       this.onLoadError = props.onLoadError
     }
     if (this.history) {
-      if (this.history.location.key) {
-        this.currentLocationKey = this.history.location.key
-      } else {
-        this.history.location.key = SSR_LOCATION_KEY
-      }
-      this.mergeLocationState(this.currentLocationKey, {
+      this.location = this.history.location
+      this.mergeLocationState(this.location.pathname, {
         data: props.data,
         location: this.history.location,
         ...(props.statusCode ? { statusCode: props.statusCode } : null),
@@ -95,13 +90,12 @@ export class Chyk<D = any> {
   }
 
   upsertLocationStateLoading(
-    key: string,
     abortController: AbortController,
     pathname: string,
     matches: MatchedRoute<{}>[],
     location: Location
   ) {
-    this.mergeLocationState(key, {
+    this.mergeLocationState(pathname, {
       matches,
       pathname,
       location,
@@ -110,57 +104,52 @@ export class Chyk<D = any> {
       loading: true,
     })
   }
-  updateLocationStateLoaded(key: string, data: any) {
-    this.mergeLocationState(key, {
+  updateLocationStateLoaded(pathname: string, data: any) {
+    this.mergeLocationState(pathname, {
       data,
       loading: false,
     })
   }
-  private mergeLocationState(locationKey: string, state: Partial<TChykLocationState>) {
-    const _state = this.locationStates[locationKey] || {}
-    this.locationStates[locationKey] = Object.assign(_state, state)
+  private mergeLocationState(pathname: string, state: Partial<TChykLocationState>) {
+    const _state = this.locationStates[pathname] || {}
+    this.locationStates[pathname] = Object.assign(_state, state)
   }
 
-  getLocationState(locationKey: string | undefined): TChykLocationState {
-    if (!locationKey) {
-      throw "No locationKey"
-    }
-    return this.locationStates[locationKey]
+  getLocationState(pathname: string): TChykLocationState {
+    return this.locationStates[pathname]
   }
-  get currentLocationState(): TChykLocationState {
-    return this.locationStates[this.currentLocationKey]
+  get locationState(): TChykLocationState {
+    return this.locationStates[this.location.pathname]
   }
   get statusCode(): TStatusCode {
-    return this.currentLocationState.statusCode
+    return this.locationState.statusCode
   }
   get data(): any {
-    return this.currentLocationState.data
+    return this.locationState.data
   }
-  cleanLocationState(locationKey: string | undefined = SSR_LOCATION_KEY) {
-    delete this.locationStates[locationKey]
+  cleanLocationState(pathname: string) {
+    delete this.locationStates[pathname]
   }
 
-  loadData = async (_location: string | Location): Promise<void> => {
+  loadData = async (_location: string | Location): Promise<boolean> => {
     try {
       const abortController = this.isBrowser
         ? new AbortController()
         : ({ signal: { aborted: false } } as AbortController) // mock on server
 
       const location = typeof _location === "string" ? createLocation(_location) : _location
-      const { key = SSR_LOCATION_KEY, pathname } = location
+      const { pathname } = location
 
       const matches = matchRoutes(this.routes, pathname)
-      this.upsertLocationStateLoading(key, abortController, pathname, matches, location)
+      this.upsertLocationStateLoading(abortController, pathname, matches, location)
       const [data] = await Promise.all([
         loadBranchDataObject(this, matches, abortController),
         loadBranchComponents(matches),
       ])
 
-      if (!key) {
-        throw "No location key"
-      }
-      this.currentLocationKey = key
-      this.updateLocationStateLoaded(key, data)
+      this.location = location
+      this.updateLocationStateLoaded(pathname, data)
+      return true
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error
@@ -168,6 +157,7 @@ export class Chyk<D = any> {
       } else {
         this.onLoadError(err)
       }
+      return false
     }
   }
   abortLoading() {
@@ -189,5 +179,21 @@ export class Chyk<D = any> {
   }
   set404 = (): void => {
     this.setStatus(404)
+  }
+
+  handleLocationChange = async (new_location: Location): Promise<boolean> => {
+    const location = this.locationState.location
+    if (location.pathname === new_location.pathname) {
+      return false
+    }
+
+    this.abortLoading()
+    if (this.getLocationState(new_location.pathname)) {
+      return false
+    }
+
+    const is_success = await this.loadData(new_location)
+    this.cleanLocationState(is_success ? location.pathname : new_location.pathname)
+    return true
   }
 }

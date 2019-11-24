@@ -19,7 +19,7 @@ const server = createServer(async (request, response) => {
     } else {
       await chyk.loadData(pathname)
       const html = renderToString(createElement(ChykStaticComponent, { chyk }))
-      const { data, statusCode } = chyk.currentLocationState
+      const { data, statusCode } = chyk.locationState
       response.statusCode = statusCode
       response.end(template({ html, data, statusCode }))
     }
@@ -30,7 +30,7 @@ const server = createServer(async (request, response) => {
 })
 
 server.listen(port, () => {
-  console.log(`server is listening on ${port}`)
+  console.log("🚀 Server started", "http://localhost:" + port)
 })
 
 type TTemplateProps = {

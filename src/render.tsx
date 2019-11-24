@@ -37,10 +37,7 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   const WrapperComponent = chyk.component || React.Fragment
   return (
     <ChykContext.Provider value={chyk}>
-      <StaticRouter
-        location={chyk.currentLocationState.location}
-        context={chyk.staticRouterContext}
-      >
+      <StaticRouter location={chyk.locationState.location} context={chyk.staticRouterContext}>
         <WrapperComponent>
           <DataRoutes routes={chyk.routes} />
         </WrapperComponent>

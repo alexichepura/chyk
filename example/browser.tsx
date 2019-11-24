@@ -15,4 +15,7 @@ new Chyk<TDeps>({
   data: window.ssr_data,
   statusCode: window.ssr_statusCode,
   el: document.getElementById("app"),
+  onLoadError: err => {
+    console.log("onLoadError", err)
+  },
 })

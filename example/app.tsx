@@ -42,10 +42,19 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
             <button onClick={() => abortController.abort()}>Abort loading</button>
           ) : null} */}
         </div>
+        <div>
+          <a href="#hash1">hash1 link</a>
+          <br />
+          <a href="#hash2">hash2 link</a>
+        </div>
       </header>
-      <main>
+      <main style={{ marginBottom: "1000px" }}>
         {chyk.is404 ? <NotFound /> : route.routes && <DataRoutes routes={route.routes} />}
       </main>
+      <div id="hash1" style={{ marginBottom: "1000px" }}>
+        hash1
+      </div>
+      <div id="hash2">hash2</div>
       <footer>&copy; {year}</footer>
     </div>
   )
