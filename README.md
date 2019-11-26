@@ -40,7 +40,7 @@ createServer(async (request, response) => {
     const chyk = new Chyk({ routes, deps: { apiSdk: new DbClient() } })
     await chyk.loadData(pathname)
     const html = renderToString(createElement(ChykStaticComponent, { chyk }))
-    const { data, statusCode } = chyk.currentLocationState
+    const { data, statusCode } = chyk.locationState
     response.statusCode = statusCode
     response.end(template({ html, data, statusCode }))
   } catch (e) {
