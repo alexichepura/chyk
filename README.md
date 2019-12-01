@@ -5,6 +5,8 @@
 ---
 
 Chyk is a microframework to build universal SPAs with React.
+[![Introduction](https://img.youtube.com/vi/VoNsghAjfNM/0.jpg)](https://www.youtube.com/watch?v=VoNsghAjfNM)
+
 
 ## Features
 
