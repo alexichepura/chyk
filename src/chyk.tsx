@@ -61,7 +61,7 @@ export class Chyk<D = any> {
     this.deps = props.deps
     this.component = props.component
     this._el = props.el
-    this.history = props.history || props.el ? createBrowserHistory() : null
+    this.history = props.history ? props.history : props.el ? createBrowserHistory() : null
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
