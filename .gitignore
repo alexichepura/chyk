@@ -16,3 +16,5 @@ worker_dist/*
 config/dist/*
 .env
 node_modules
+
+!example/.env
