@@ -2,12 +2,14 @@ require("dotenv").config()
 import { join } from "path"
 import { Configuration as WebpackConfiguration } from "webpack"
 import { Configuration as WebpackDevServerConfiguration } from "webpack-dev-server"
+import { env } from "./env"
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration
 }
 
-const { WDS_PORT } = process.env
+const { WDS_PORT } = env
+
 const ROOT_DIR = join(__dirname, "..")
 const EXAMPLE_DIR = join(ROOT_DIR, "example")
 const EXAMPLE_DIST_DIR = join(EXAMPLE_DIR, "dist")

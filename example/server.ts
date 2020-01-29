@@ -1,14 +1,15 @@
 require("dotenv").config()
-const { WDS_PORT, PORT, DISABLE_SSR } = process.env
 import { createServer } from "http"
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 import { Chyk } from "../src/chyk"
+import { ChykStaticComponent } from "../src/render"
 import { routes, TDeps } from "./app"
 import { DbClient } from "./db"
-import { ChykStaticComponent } from "../src/render"
+import { env } from "./env"
 
-const port = (PORT && Number(PORT)) || 3000
+const { DISABLE_SSR, PORT, WDS_PORT } = env
+
 const server = createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
@@ -29,8 +30,8 @@ const server = createServer(async (request, response) => {
   }
 })
 
-server.listen(port, () => {
-  console.log("🚀 Server started", "http://localhost:" + port)
+server.listen(PORT, () => {
+  console.log("🚀 Server started", "http://localhost:" + PORT)
 })
 
 type TTemplateProps = {
