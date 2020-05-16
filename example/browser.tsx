@@ -25,4 +25,8 @@ const chyk = new Chyk<TDeps>({
 })
 
 const node = document.getElementById("app")
-unstable_createRoot(node!).render(<ChykComponent chyk={chyk} />)
+unstable_createRoot(node!).render(
+  <React.StrictMode>
+    <ChykComponent chyk={chyk} />
+  </React.StrictMode>
+)
