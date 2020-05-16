@@ -1,9 +1,8 @@
 import { createBrowserHistory, createLocation, History, Location } from "history"
+import { ComponentType } from "react"
 import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
 import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
-import { chykHydrateOrRender } from "./render"
-import { ComponentType } from "react"
 
 export type TStatusCode = number
 
@@ -20,7 +19,6 @@ export type TChykLocationsStates = Record<string, TChykLocationState>
 
 type TChykProps<D = any> = {
   routes: TRouteConfig[]
-  el?: HTMLElement | null
   data?: TLocationData
   statusCode?: TStatusCode
   deps: D extends undefined ? never : D
@@ -30,16 +28,8 @@ type TChykProps<D = any> = {
 }
 
 export class Chyk<D = any> {
-  private _el: HTMLElement | undefined | null = null
-  get el(): HTMLElement {
-    if (!this._el) {
-      throw "No element"
-    }
-    return this._el
-  }
-
   history: History | null
-  onLoadError: (err: Error) => void = err => {
+  onLoadError: (err: Error) => void = (err) => {
     throw err
   }
   staticRouterContext: StaticRouterContext = {}
@@ -50,7 +40,7 @@ export class Chyk<D = any> {
     return Boolean(this.history)
   }
   get loading(): boolean {
-    return Object.values(this.locationStates).some(state => state.loading)
+    return Object.values(this.locationStates).some((state) => state.loading)
   }
 
   private locationStates: TChykLocationsStates = {}
@@ -60,8 +50,11 @@ export class Chyk<D = any> {
     this.routes = props.routes
     this.deps = props.deps
     this.component = props.component
-    this._el = props.el
-    this.history = props.history ? props.history : props.el ? createBrowserHistory() : null
+    this.history = props.history
+      ? props.history
+      : typeof window !== "undefined"
+      ? createBrowserHistory()
+      : null
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
@@ -86,7 +79,6 @@ export class Chyk<D = any> {
       const matches = matchRoutes(this.routes, this.history.location.pathname)
       await loadBranchComponents(matches)
     }
-    chykHydrateOrRender(this)
   }
 
   upsertLocationStateLoading(
@@ -161,7 +153,7 @@ export class Chyk<D = any> {
     }
   }
   abortLoading() {
-    Object.values(this.locationStates).forEach(state => {
+    Object.values(this.locationStates).forEach((state) => {
       state.abortController && state.abortController.abort()
       state.loading = false
     })
@@ -171,7 +163,7 @@ export class Chyk<D = any> {
     return this.statusCode === 404
   }
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.locationStates).forEach(state => {
+    Object.values(this.locationStates).forEach((state) => {
       if (state.loading) {
         state.statusCode = statusCode
       }

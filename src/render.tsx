@@ -1,18 +1,9 @@
 import React, { FC } from "react"
-import { render, hydrate } from "react-dom"
+import { Router, StaticRouter } from "react-router"
 import { Chyk } from "./chyk"
 import { ChykContext } from "./hooks"
-import { Router, StaticRouter } from "react-router"
-import { DataRoutes } from "./routes"
 import { ChykPreloader } from "./preloader"
-
-export const chykHydrateOrRender = (chyk: Chyk) => {
-  if (!chyk.el) {
-    throw "No renderer for no element"
-  }
-  const renderer = chyk.el.childNodes.length === 0 ? render : hydrate
-  renderer(<ChykComponent chyk={chyk} />, chyk.el)
-}
+import { DataRoutes } from "./routes"
 
 export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   if (!chyk.history) {
@@ -31,7 +22,6 @@ export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
     </ChykContext.Provider>
   )
 }
-ChykComponent.displayName = "ChykComponent"
 
 export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   const WrapperComponent = chyk.component || React.Fragment
@@ -45,4 +35,3 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
     </ChykContext.Provider>
   )
 }
-ChykStaticComponent.displayName = "ChykStaticComponent"
