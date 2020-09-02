@@ -1,5 +1,5 @@
 {
-  "author": "Palessit",
+  "author": "Alexi Chepura",
   "description": "Chyk is a microframework to build universal SPAs with React.",
   "devDependencies": {
     "@types/history": "^4.7.7",
@@ -64,5 +64,5 @@
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.9.1"
+  "version": "0.10.0-alpha.1"
 }
