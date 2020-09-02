@@ -1,9 +1,9 @@
 import { createBrowserHistory, createLocation, History, Location } from "history"
+import { ComponentType } from "react"
 import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
 import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
 import { chykHydrateOrRender } from "./render"
-import { ComponentType } from "react"
 
 export type TStatusCode = number
 
@@ -39,7 +39,7 @@ export class Chyk<D = any> {
   }
 
   history: History | null
-  onLoadError: (err: Error) => void = err => {
+  onLoadError: (err: Error) => void = (err) => {
     throw err
   }
   staticRouterContext: StaticRouterContext = {}
@@ -50,7 +50,7 @@ export class Chyk<D = any> {
     return Boolean(this.history)
   }
   get loading(): boolean {
-    return Object.values(this.locationStates).some(state => state.loading)
+    return Object.values(this.locationStates).some((state) => state.loading)
   }
 
   private locationStates: TChykLocationsStates = {}
@@ -67,6 +67,7 @@ export class Chyk<D = any> {
     }
     if (this.history) {
       this.location = this.history.location
+      this.listen()
       this.mergeLocationState(this.location.pathname, {
         data: props.data,
         location: this.history.location,
@@ -161,7 +162,7 @@ export class Chyk<D = any> {
     }
   }
   abortLoading() {
-    Object.values(this.locationStates).forEach(state => {
+    Object.values(this.locationStates).forEach((state) => {
       state.abortController && state.abortController.abort()
       state.loading = false
     })
@@ -171,7 +172,7 @@ export class Chyk<D = any> {
     return this.statusCode === 404
   }
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.locationStates).forEach(state => {
+    Object.values(this.locationStates).forEach((state) => {
       if (state.loading) {
         state.statusCode = statusCode
       }
@@ -183,6 +184,7 @@ export class Chyk<D = any> {
 
   handleLocationChange = async (new_location: Location): Promise<boolean> => {
     const location = this.locationState.location
+    // console.log("handleLocationChange: ", location.pathname, new_location.pathname)
     if (location.pathname === new_location.pathname) {
       return false
     }
@@ -196,4 +198,13 @@ export class Chyk<D = any> {
     this.cleanLocationState(is_success ? location.pathname : new_location.pathname)
     return true
   }
+
+  listen = () => {
+    this.history?.listen((location) => {
+      // console.log("listen", { ...location })
+      this.switchRoute && this.switchRoute(location)
+    })
+  }
+
+  switchRoute: null | ((location: Location) => void) = null
 }

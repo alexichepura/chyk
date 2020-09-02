@@ -1,10 +1,10 @@
 import React, { FC } from "react"
-import { render, hydrate } from "react-dom"
+import { hydrate, render } from "react-dom"
+import { Router, StaticRouter } from "react-router"
 import { Chyk } from "./chyk"
 import { ChykContext } from "./hooks"
-import { Router, StaticRouter } from "react-router"
-import { DataRoutes } from "./routes"
 import { ChykPreloader } from "./preloader"
+import { DataRoutes } from "./routes"
 
 export const chykHydrateOrRender = (chyk: Chyk) => {
   if (!chyk.el) {

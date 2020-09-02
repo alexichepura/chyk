@@ -1,7 +1,7 @@
 import React, { FC } from "react"
 import { Link } from "react-router-dom"
 import { useChyk } from "../src"
-import { TRouteComponentProps, TLoadData as TChykLoadData, TRouteConfig } from "../src/match"
+import { TLoadData as TChykLoadData, TRouteComponentProps, TRouteConfig } from "../src/match"
 import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
@@ -23,7 +23,7 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
       <header>
         <div>
           <Link to="">home</Link>
-          {articles.map(a => (
+          {articles.map((a) => (
             <Link key={a.slug} to={"/" + a.slug} style={link_style}>
               {a.title}
             </Link>
@@ -79,7 +79,7 @@ export const Home: FC<THomeProps> = ({ articles }) => (
     <div>
       <h2>Articles</h2>
       <div>
-        {articles.map(a => (
+        {articles.map((a) => (
           <div key={a.slug}>{a.title}</div>
         ))}
       </div>
@@ -98,7 +98,7 @@ type TArticleProps = TRouteComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
   article: TArticle
 }
-export const Article: FC<TArticleProps> = props => {
+export const Article: FC<TArticleProps> = (props) => {
   return (
     <div>
       <h1>Page {props.article.title}</h1>
@@ -111,7 +111,7 @@ const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = asy
   { abortController, match, chyk },
   { apiSdk }
 ) => {
-  console.log("articleLoader")
+  console.log("articleLoader", match.params.slug)
   const article = await apiSdk.getArticle(match.params.slug, abortController.signal)
   if (!article) {
     chyk.set404()
