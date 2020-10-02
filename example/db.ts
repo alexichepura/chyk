@@ -45,7 +45,6 @@ export const delay = (ms: number = 10): Promise<void> =>
 
 function delayWithSignal(ms: number = 10, signal: AbortSignal) {
   if (signal.aborted) {
-    console.log("signal.aborted", signal.aborted)
     return Promise.reject(new DOMException("Aborted", "AbortError"))
   }
 
@@ -58,7 +57,6 @@ function delayWithSignal(ms: number = 10, signal: AbortSignal) {
     }
     // Listen for abort event on signal
     signal.addEventListener("abort", () => {
-      console.log("abort")
       clearTimeout(timeout)
       reject(new DOMException("Aborted", "AbortError"))
     })

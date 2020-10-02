@@ -67,7 +67,6 @@ export class Chyk<D = any> {
     }
     if (this.history) {
       this.location = this.history.location
-      this.listen()
       this.mergeLocationState(this.location.pathname, {
         data: props.data,
         location: this.history.location,
@@ -162,6 +161,7 @@ export class Chyk<D = any> {
     }
   }
   abortLoading() {
+    console.log("abortLoading")
     Object.values(this.locationStates).forEach((state) => {
       state.abortController && state.abortController.abort()
       state.loading = false
@@ -181,38 +181,4 @@ export class Chyk<D = any> {
   set404 = (): void => {
     this.setStatus(404)
   }
-
-  // lastLoca
-  handleLocationChange = async (new_location: Location): Promise<boolean> => {
-    const location = this.locationState.location
-    console.log(
-      "handleLocationChange: ",
-      location.pathname,
-      location.key,
-      new_location.pathname,
-      new_location.key
-      // window.location.pathname
-    )
-    if (location.pathname === new_location.pathname) {
-      return false
-    }
-
-    this.abortLoading()
-    if (this.getLocationState(new_location.pathname)) {
-      return false
-    }
-
-    const is_success = await this.loadData(new_location)
-    this.cleanLocationState(is_success ? location.pathname : new_location.pathname)
-    return true
-  }
-
-  private listen = () => {
-    this.history?.listen((location) => {
-      console.log("listen", { ...location })
-      this.switchRoute && this.switchRoute(location)
-    })
-  }
-
-  switchRoute: null | ((location: Location) => void) = null
 }

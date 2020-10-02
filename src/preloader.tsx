@@ -1,24 +1,33 @@
-import { Location } from "history"
 import React, { FC, useEffect, useState } from "react"
 import { Route } from "react-router"
 import { useChyk } from "."
 
-export const Preloader: FC = ({ children }) => {
+const usePreloader = () => {
   const chyk = useChyk()
-  // const location = useLocation()
   const [, set_render_location] = useState(chyk.locationState.location) // just to rerender
 
   useEffect(() => {
-    const switchRoute = (location: Location) => {
-      chyk.handleLocationChange(location).then((should_rerender) => {
-        should_rerender && set_render_location(location)
-      })
-    }
-    chyk.switchRoute = switchRoute
+    chyk.history?.listen(async (new_location) => {
+      const location = chyk.locationState.location
+      console.log("listen", { ...location }, { ...new_location })
+      if (location.pathname === new_location.pathname) {
+        return
+      }
+      chyk.abortLoading()
+      if (chyk.getLocationState(new_location.pathname)) {
+        return
+      }
+      const is_success = await chyk.loadData(new_location)
+      chyk.cleanLocationState(is_success ? location.pathname : new_location.pathname)
+      set_render_location(new_location)
+    })
   }, [])
 
-  // console.log("Preloader target location: ", location.pathname)
+  return chyk.locationState.location
+}
 
-  return <Route location={chyk.locationState.location} render={() => children} />
+export const Preloader: FC = ({ children }) => {
+  const render_location = usePreloader()
+  return <Route location={render_location} render={() => children} />
 }
 Preloader.displayName = "Preloader"
