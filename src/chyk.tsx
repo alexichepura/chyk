@@ -182,9 +182,17 @@ export class Chyk<D = any> {
     this.setStatus(404)
   }
 
+  // lastLoca
   handleLocationChange = async (new_location: Location): Promise<boolean> => {
     const location = this.locationState.location
-    // console.log("handleLocationChange: ", location.pathname, new_location.pathname)
+    console.log(
+      "handleLocationChange: ",
+      location.pathname,
+      location.key,
+      new_location.pathname,
+      new_location.key
+      // window.location.pathname
+    )
     if (location.pathname === new_location.pathname) {
       return false
     }
@@ -199,9 +207,9 @@ export class Chyk<D = any> {
     return true
   }
 
-  listen = () => {
+  private listen = () => {
     this.history?.listen((location) => {
-      // console.log("listen", { ...location })
+      console.log("listen", { ...location })
       this.switchRoute && this.switchRoute(location)
     })
   }

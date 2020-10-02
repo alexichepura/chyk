@@ -3,7 +3,7 @@ import { hydrate, render } from "react-dom"
 import { Router, StaticRouter } from "react-router"
 import { Chyk } from "./chyk"
 import { ChykContext } from "./hooks"
-import { ChykPreloader } from "./preloader"
+import { Preloader } from "./preloader"
 import { DataRoutes } from "./routes"
 
 export const chykHydrateOrRender = (chyk: Chyk) => {
@@ -22,11 +22,11 @@ export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   return (
     <ChykContext.Provider value={chyk}>
       <Router history={chyk.history}>
-        <ChykPreloader>
+        <Preloader>
           <WrapperComponent>
             <DataRoutes routes={chyk.routes} />
           </WrapperComponent>
-        </ChykPreloader>
+        </Preloader>
       </Router>
     </ChykContext.Provider>
   )

@@ -3,7 +3,7 @@ import React, { FC, useEffect, useState } from "react"
 import { Route } from "react-router"
 import { useChyk } from "."
 
-export const ChykPreloader: FC = ({ children }) => {
+export const Preloader: FC = ({ children }) => {
   const chyk = useChyk()
   // const location = useLocation()
   const [, set_render_location] = useState(chyk.locationState.location) // just to rerender
@@ -17,8 +17,8 @@ export const ChykPreloader: FC = ({ children }) => {
     chyk.switchRoute = switchRoute
   }, [])
 
-  // console.log("ChykPreloader target location: ", location.pathname)
+  // console.log("Preloader target location: ", location.pathname)
 
   return <Route location={chyk.locationState.location} render={() => children} />
 }
-ChykPreloader.displayName = "ChykPreloader"
+Preloader.displayName = "Preloader"
