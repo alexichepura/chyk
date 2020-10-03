@@ -88,28 +88,6 @@ export class Chyk<D = any> {
     }
     chykHydrateOrRender(this)
   }
-
-  upsertLocationStateLoading(
-    abortController: AbortController,
-    pathname: string,
-    matches: MatchedRoute<{}>[],
-    location: Location
-  ) {
-    this.mergeLocationState(pathname, {
-      matches,
-      pathname,
-      location,
-      abortController,
-      statusCode: 200,
-      loading: true,
-    })
-  }
-  updateLocationStateLoaded(pathname: string, data: any) {
-    this.mergeLocationState(pathname, {
-      data,
-      loading: false,
-    })
-  }
   private mergeLocationState(pathname: string, state: Partial<TChykLocationState>) {
     const _state = this.locationStates[pathname] || {}
     this.locationStates[pathname] = Object.assign(_state, state)
@@ -141,14 +119,24 @@ export class Chyk<D = any> {
       const { pathname } = location
 
       const matches = matchRoutes(this.routes, pathname)
-      this.upsertLocationStateLoading(abortController, pathname, matches, location)
+      this.mergeLocationState(pathname, {
+        matches,
+        pathname,
+        location,
+        abortController,
+        statusCode: 200,
+        loading: true,
+      })
       const [data] = await Promise.all([
         loadBranchDataObject(this, matches, abortController),
         loadBranchComponents(matches),
       ])
 
       this.location = location
-      this.updateLocationStateLoaded(pathname, data)
+      this.mergeLocationState(pathname, {
+        data,
+        loading: false,
+      })
       return true
     } catch (err) {
       if (err.name === "AbortError") {

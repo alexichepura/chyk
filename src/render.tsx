@@ -1,9 +1,9 @@
-import React, { FC } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { hydrate, render } from "react-dom"
-import { Router, StaticRouter } from "react-router"
+import { Route, Router, StaticRouter } from "react-router"
+import { useChyk } from "."
 import { Chyk } from "./chyk"
 import { ChykContext } from "./hooks"
-import { Preloader } from "./preloader"
 import { DataRoutes } from "./routes"
 
 export const chykHydrateOrRender = (chyk: Chyk) => {
@@ -46,3 +46,24 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   )
 }
 ChykStaticComponent.displayName = "ChykStaticComponent"
+
+const usePreloader = () => {
+  const chyk = useChyk()
+  const [, set_render_location] = useState(chyk.locationState.location) // just to rerender
+
+  useEffect(() => {
+    chyk.history?.listen(async (new_location) => {
+      chyk.abortLoading()
+      await chyk.loadData(new_location)
+      set_render_location(new_location)
+    })
+  }, [])
+
+  return chyk.locationState.location
+}
+
+export const Preloader: FC = ({ children }) => {
+  const render_location = usePreloader()
+  return <Route location={render_location} render={() => children} />
+}
+Preloader.displayName = "Preloader"
