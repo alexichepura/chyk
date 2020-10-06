@@ -20,7 +20,7 @@ const server = createServer(async (request, response) => {
     } else {
       await chyk.loadData(pathname)
       const html = renderToString(createElement(ChykStaticComponent, { chyk }))
-      const { data, statusCode } = chyk.locationState
+      const { data, statusCode } = chyk.state
       response.statusCode = statusCode
       response.end(template({ html, data, statusCode }))
     }

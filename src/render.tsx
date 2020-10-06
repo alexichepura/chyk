@@ -37,7 +37,7 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   const WrapperComponent = chyk.component || React.Fragment
   return (
     <ChykContext.Provider value={chyk}>
-      <StaticRouter location={chyk.locationState.location} context={chyk.staticRouterContext}>
+      <StaticRouter location={chyk.state.location} context={chyk.staticRouterContext}>
         <WrapperComponent>
           <DataRoutes routes={chyk.routes} />
         </WrapperComponent>
@@ -49,7 +49,7 @@ ChykStaticComponent.displayName = "ChykStaticComponent"
 
 const usePreloader = () => {
   const chyk = useChyk()
-  const [, set_render_location] = useState(chyk.locationState.location) // just to rerender
+  const [, set_render_location] = useState(chyk.state.location) // just to rerender
 
   useEffect(() => {
     chyk.history?.listen(async (new_location) => {
@@ -60,7 +60,7 @@ const usePreloader = () => {
     })
   }, [])
 
-  return chyk.locationState.location
+  return chyk.state.location
 }
 
 export const Preloader: FC = ({ children }) => {

@@ -55,6 +55,17 @@ export class Chyk<D = any> {
 
   states: TStates = []
   i: number = 0
+  matchesData: Record<string, any> = {}
+
+  get state(): TState {
+    return this.states[this.i]
+  }
+  get data(): any {
+    return this.state.data
+  }
+  get is404(): boolean {
+    return this.state.statusCode === 404
+  }
 
   constructor(props: TChykProps<D>) {
     this.routes = props.routes
@@ -66,7 +77,7 @@ export class Chyk<D = any> {
       this.onLoadError = props.onLoadError
     }
     if (this.history) {
-      this.mergeLocationState(this.i, {
+      this.merge(this.i, {
         data: props.data,
         location: this.history.location,
         ...(props.statusCode ? { statusCode: props.statusCode } : null),
@@ -87,28 +98,10 @@ export class Chyk<D = any> {
     }
     chykHydrateOrRender(this)
   }
-  private mergeLocationState(i: number, state: Partial<TState>) {
+  private merge(i: number, state: Partial<TState>) {
     const _state = this.states[i] || {}
     this.states[i] = Object.assign(_state, state)
   }
-
-  getLocationState(i: number): TState {
-    return this.states[i]
-  }
-  get locationState(): TState {
-    return this.states[this.i]
-  }
-  get statusCode(): TStatusCode {
-    return this.locationState.statusCode
-  }
-  get data(): any {
-    return this.locationState.data
-  }
-  // cleanLocationState(pathname: string) {
-  //   delete this.locationStates[pathname]
-  // }
-
-  matchesData: Record<string, any> = {}
 
   loadData = async (_location: string | Location): Promise<boolean> => {
     try {
@@ -122,7 +115,7 @@ export class Chyk<D = any> {
       const matches = matchRoutes(this.routes, pathname)
       const diffedMatches = matches.filter((m) => !this.matchesData[m.match.url])
       const i = this.i + 1
-      this.mergeLocationState(i, {
+      this.merge(i, {
         matches,
         pathname,
         location,
@@ -145,7 +138,7 @@ export class Chyk<D = any> {
         return p
       }, {})
 
-      this.mergeLocationState(i, {
+      this.merge(i, {
         data: matchesData,
         loading: false,
       })
@@ -168,9 +161,6 @@ export class Chyk<D = any> {
     })
   }
 
-  get is404(): boolean {
-    return this.statusCode === 404
-  }
   setStatus(statusCode: TStatusCode) {
     Object.values(this.states).forEach((state) => {
       if (state.loading) {

@@ -13,7 +13,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
   return (
     <Switch {...switchProps}>
       {routes.map((route, i) => {
-        const ctx = chyk.locationState
+        const ctx = chyk.state
         const keyData = (ctx.data && route.dataKey && ctx.data[route.dataKey]) || undefined
         return (
           <Route
@@ -21,7 +21,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
             path={route.path}
             exact={route.exact}
             strict={route.strict}
-            render={props =>
+            render={(props) =>
               (route.render &&
                 route.render({
                   ...props,
