@@ -37,7 +37,6 @@ export class Chyk<D = any> {
     }
     return this._el
   }
-
   history: History | null
   onLoadError: (err: Error) => void = (err) => {
     throw err
@@ -49,11 +48,9 @@ export class Chyk<D = any> {
   get loading(): boolean {
     return this.states.some((state) => state.loading)
   }
-
   states: TStates = []
   i: number = -1
   data: Record<string, any> = {}
-
   get state(): TState {
     return this.states[this.i]
   }
@@ -73,18 +70,14 @@ export class Chyk<D = any> {
     if (props.data) {
       this.data = props.data
     }
+    if (props.statusCode) {
+      this.merge(0, { statusCode: props.statusCode })
+    }
     if (this.history) {
-      this.loadAndRender()
+      this.loadData(this.history.location).then(() => chykHydrateOrRender(this))
     }
   }
 
-  async loadAndRender() {
-    if (!this.history) {
-      throw "No history"
-    }
-    await this.loadData(this.history.location)
-    chykHydrateOrRender(this)
-  }
   private merge(i: number, state: Partial<TState>) {
     this.states[i] = { ...(this.states[i] || {}), ...state }
   }
@@ -97,9 +90,7 @@ export class Chyk<D = any> {
 
       const location = typeof _location === "string" ? createLocation(_location) : _location
       const { pathname } = location
-
       const matches = matchRoutes(this.routes, pathname)
-
       const keys = matches.reduce<Record<string, string>>((p, c) => {
         p[c.route.dataKey] = c.match.url
         return p
@@ -113,20 +104,18 @@ export class Chyk<D = any> {
         pathname,
         location,
         abortController,
-        statusCode: 200,
         loading: true,
       })
-
       const [loadedData] = await Promise.all([
         loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
-      this.i = i
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData
       })
-
-      this.merge(i, { loading: false })
+      this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
+      console.log("state", this.states, this.state)
+      this.i = i
       return true
     } catch (err) {
       if (err.name === "AbortError") {
@@ -144,7 +133,6 @@ export class Chyk<D = any> {
       state.loading = false
     })
   }
-
   setStatus(statusCode: TStatusCode) {
     this.states.forEach((state) => {
       if (state.loading) state.statusCode = statusCode
