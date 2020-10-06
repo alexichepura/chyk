@@ -53,7 +53,7 @@ export class Chyk<D = any> {
     return Object.values(this.locationStates).some((state) => state.loading)
   }
 
-  private locationStates: TChykLocationsStates = {}
+  locationStates: TChykLocationsStates = {}
   private location: Location = { pathname: "" } as any
 
   constructor(props: TChykProps<D>) {
@@ -105,9 +105,11 @@ export class Chyk<D = any> {
   get data(): any {
     return this.locationState.data
   }
-  cleanLocationState(pathname: string) {
-    delete this.locationStates[pathname]
-  }
+  // cleanLocationState(pathname: string) {
+  //   delete this.locationStates[pathname]
+  // }
+
+  matchesData: Record<string, any> = {}
 
   loadData = async (_location: string | Location): Promise<boolean> => {
     try {
@@ -119,6 +121,8 @@ export class Chyk<D = any> {
       const { pathname } = location
 
       const matches = matchRoutes(this.routes, pathname)
+      const diffedMatches = matches.filter((m) => !this.matchesData[m.match.url])
+
       this.mergeLocationState(pathname, {
         matches,
         pathname,
@@ -127,14 +131,23 @@ export class Chyk<D = any> {
         statusCode: 200,
         loading: true,
       })
-      const [data] = await Promise.all([
-        loadBranchDataObject(this, matches, abortController),
+
+      const [loadedData] = await Promise.all([
+        loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
-
       this.location = location
+      Object.entries(loadedData).forEach(([key, matchData]) => {
+        this.matchesData[key] = matchData
+      })
+
+      const matchesData = matches.reduce<Record<string, any>>((p, c) => {
+        p[c.route.dataKey] = this.matchesData[c.match.url]
+        return p
+      }, {})
+
       this.mergeLocationState(pathname, {
-        data,
+        data: matchesData,
         loading: false,
       })
       return true

@@ -42,7 +42,7 @@ export const loadBranchDataObject = async (
       ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
         return route.loadData
           ? {
-              dataKey: route.dataKey,
+              dataKey: match.url,
               promise: route.loadData({ chyk, match, abortController }, chyk.deps),
             }
           : (Promise.resolve(null) as any)
@@ -50,21 +50,18 @@ export const loadBranchDataObject = async (
     )
     .filter(Boolean)
 
-  const results = await Promise.all(promisesConfig.map(c => c.promise))
-  const resultsObject = results.reduce(
-    (prev, current, index) => {
-      prev[promisesConfig[index].dataKey] = current
-      return prev
-    },
-    {} as Record<string, TLoadDataResult>
-  )
+  const results = await Promise.all(promisesConfig.map((c) => c.promise))
+  const resultsObject = results.reduce((prev, current, index) => {
+    prev[promisesConfig[index].dataKey] = current
+    return prev
+  }, {} as Record<string, TLoadDataResult>)
   return resultsObject
 }
 
 export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React.ComponentType[]> {
   return Promise.all(
-    matches.map(match => {
-      const component = match.route.component as (React.ComponentType | TAsyncComponent)
+    matches.map((match) => {
+      const component = match.route.component as React.ComponentType | TAsyncComponent
       if (isAsyncComponent(component)) {
         return component.load()
       }

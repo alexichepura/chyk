@@ -55,6 +55,7 @@ const usePreloader = () => {
     chyk.history?.listen(async (new_location) => {
       chyk.abortLoading()
       await chyk.loadData(new_location)
+      console.log("locationStates", chyk.locationStates)
       set_render_location(new_location)
     })
   }, [])
