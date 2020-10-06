@@ -42,7 +42,7 @@ export const loadBranchDataObject = async (
       ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
         return route.loadData
           ? {
-              dataKey: match.url,
+              dataKey: getKey(route.dataKey, match.url),
               promise: route.loadData({ chyk, match, abortController }, chyk.deps),
             }
           : (Promise.resolve(null) as any)
@@ -69,3 +69,6 @@ export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React
     })
   )
 }
+
+export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>
+  k1 && k2 ? k1 + ":" + k2 : undefined

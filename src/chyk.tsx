@@ -2,7 +2,13 @@ import { createBrowserHistory, createLocation, History, Location } from "history
 import { ComponentType } from "react"
 import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
-import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
+import {
+  getKey,
+  loadBranchComponents,
+  loadBranchDataObject,
+  TLocationData,
+  TRouteConfig,
+} from "./match"
 import { chykHydrateOrRender } from "./render"
 
 export type TStatusCode = number
@@ -92,11 +98,16 @@ export class Chyk<D = any> {
       const { pathname } = location
       const matches = matchRoutes(this.routes, pathname)
       const keys = matches.reduce<Record<string, string>>((p, c) => {
-        p[c.route.dataKey] = c.match.url
+        const key = getKey(c.route.dataKey, c.match.url)
+        if (key) {
+          p[c.route.dataKey] = key
+        }
         return p
       }, {})
-      const diffedMatches = matches.filter((m) => !this.data[m.match.url])
-      // console.log(matches, diffedMatches)
+      const diffedMatches = matches.filter((m) => {
+        const key = getKey((m.route as TRouteConfig).dataKey, m.match.url)
+        return !key || !this.data[key]
+      })
       const i = this.i + 1
       this.merge(i, {
         keys,
@@ -114,8 +125,6 @@ export class Chyk<D = any> {
         this.data[key] = matchData
       })
       this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
-      console.log("states", this.states)
-      console.log("data", this.data)
       this.i = i
       return true
     } catch (err) {
@@ -134,11 +143,7 @@ export class Chyk<D = any> {
     })
   }
   setStatus(statusCode: TStatusCode) {
-    // console.log(this.states, this.i, statusCode)
     this.states[this.i + 1].statusCode = statusCode
-    // this.states.forEach((state) => {
-    //   if (state.loading) state.statusCode = statusCode
-    // })
   }
   set404 = (): void => {
     this.setStatus(404)
