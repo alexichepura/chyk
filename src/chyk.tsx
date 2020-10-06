@@ -7,7 +7,7 @@ import { chykHydrateOrRender } from "./render"
 
 export type TStatusCode = number
 
-export type TChykLocationState = {
+export type TState = {
   pathname: string
   matches: MatchedRoute<{}>[]
   abortController: AbortController
@@ -16,7 +16,7 @@ export type TChykLocationState = {
   statusCode: TStatusCode
   data?: TLocationData
 }
-export type TChykLocationsStates = TChykLocationState[]
+export type TStates = TState[]
 
 type TChykProps<D = any> = {
   routes: TRouteConfig[]
@@ -53,7 +53,7 @@ export class Chyk<D = any> {
     return Object.values(this.states).some((state) => state.loading)
   }
 
-  states: TChykLocationsStates = []
+  states: TStates = []
   i: number = 0
 
   constructor(props: TChykProps<D>) {
@@ -87,15 +87,15 @@ export class Chyk<D = any> {
     }
     chykHydrateOrRender(this)
   }
-  private mergeLocationState(i: number, state: Partial<TChykLocationState>) {
+  private mergeLocationState(i: number, state: Partial<TState>) {
     const _state = this.states[i] || {}
     this.states[i] = Object.assign(_state, state)
   }
 
-  getLocationState(i: number): TChykLocationState {
+  getLocationState(i: number): TState {
     return this.states[i]
   }
-  get locationState(): TChykLocationState {
+  get locationState(): TState {
     return this.states[this.i]
   }
   get statusCode(): TStatusCode {
