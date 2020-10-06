@@ -114,7 +114,6 @@ export class Chyk<D = any> {
         this.data[key] = matchData
       })
       this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
-      console.log("state", this.states, this.state)
       this.i = i
       return true
     } catch (err) {
@@ -127,7 +126,6 @@ export class Chyk<D = any> {
     }
   }
   abortLoading() {
-    console.log("abortLoading")
     this.states.forEach((state) => {
       state.abortController?.abort()
       state.loading = false
