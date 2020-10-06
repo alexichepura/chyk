@@ -28,6 +28,11 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
               {a.title}
             </Link>
           ))}
+          {articles.map((a) => (
+            <Link key={"sub" + a.slug} to={"/subarticle/" + a.slug} style={link_style}>
+              sub: {a.title}
+            </Link>
+          ))}
           <Link to="/article-404" style={link_style}>
             Article 404
           </Link>
@@ -166,6 +171,13 @@ export const routes: TRouteConfig[] = [
         component: LongLoading as FC,
         dataKey: "longLoading",
         loadData: longLoadingLoader,
+      },
+      {
+        path: "/subarticle/:slug",
+        component: Article as FC,
+        exact: true,
+        dataKey: "subarticle",
+        loadData: articleLoader,
       },
       {
         path: "/:slug",

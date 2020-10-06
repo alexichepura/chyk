@@ -95,8 +95,8 @@ export class Chyk<D = any> {
         p[c.route.dataKey] = c.match.url
         return p
       }, {})
-
       const diffedMatches = matches.filter((m) => !this.data[m.match.url])
+      // console.log(matches, diffedMatches)
       const i = this.i + 1
       this.merge(i, {
         keys,
@@ -114,6 +114,8 @@ export class Chyk<D = any> {
         this.data[key] = matchData
       })
       this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
+      console.log("states", this.states)
+      console.log("data", this.data)
       this.i = i
       return true
     } catch (err) {
