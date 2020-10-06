@@ -132,9 +132,11 @@ export class Chyk<D = any> {
     })
   }
   setStatus(statusCode: TStatusCode) {
-    this.states.forEach((state) => {
-      if (state.loading) state.statusCode = statusCode
-    })
+    // console.log(this.states, this.i, statusCode)
+    this.states[this.i + 1].statusCode = statusCode
+    // this.states.forEach((state) => {
+    //   if (state.loading) state.statusCode = statusCode
+    // })
   }
   set404 = (): void => {
     this.setStatus(404)

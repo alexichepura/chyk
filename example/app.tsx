@@ -107,7 +107,7 @@ export const Article: FC<TArticleProps> = (props) => {
   )
 }
 
-const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = async (
+const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async (
   { abortController, match, chyk },
   { apiSdk }
 ) => {
@@ -115,6 +115,7 @@ const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = asy
   const article = await apiSdk.getArticle(match.params.slug, abortController.signal)
   if (!article) {
     chyk.set404()
+    return null
   }
   return { article }
 }
