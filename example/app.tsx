@@ -175,6 +175,8 @@ export const routes: TRouteConfig[] = [
       },
       {
         component: NotFound as FC,
+        path: "/*",
+        dataKey: "404",
         loadData: async ({ chyk }) => chyk.set404(),
       },
     ],

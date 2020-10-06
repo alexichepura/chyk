@@ -10,7 +10,7 @@ export type TStatusCode = number
 export type TState = {
   pathname: string
   matches: MatchedRoute<{}>[]
-  abortController: AbortController
+  abortController?: AbortController
   location: Location
   loading: boolean
   statusCode: TStatusCode
@@ -46,11 +46,8 @@ export class Chyk<D = any> {
   routes: TRouteConfig[]
   deps: D extends undefined ? never : D
   component?: ComponentType
-  get isBrowser(): boolean {
-    return Boolean(this.history)
-  }
   get loading(): boolean {
-    return Object.values(this.states).some((state) => state.loading)
+    return this.states.some((state) => state.loading)
   }
 
   states: TStates = []
@@ -99,13 +96,12 @@ export class Chyk<D = any> {
     chykHydrateOrRender(this)
   }
   private merge(i: number, state: Partial<TState>) {
-    const _state = this.states[i] || {}
-    this.states[i] = Object.assign(_state, state)
+    this.states[i] = { ...(this.states[i] || {}), ...state }
   }
 
   loadData = async (_location: string | Location): Promise<boolean> => {
     try {
-      const abortController = this.isBrowser
+      const abortController = Boolean(this.history)
         ? new AbortController()
         : ({ signal: { aborted: false } } as AbortController) // mock on server
 
@@ -128,6 +124,7 @@ export class Chyk<D = any> {
         loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
+      console.log(matches, diffedMatches, loadedData)
       this.i = i
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.matchesData[key] = matchData
@@ -137,7 +134,7 @@ export class Chyk<D = any> {
         p[c.route.dataKey] = this.matchesData[c.match.url]
         return p
       }, {})
-
+      // console.log(loadedData, this.matchesData, matchesData)
       this.merge(i, {
         data: matchesData,
         loading: false,
@@ -155,17 +152,15 @@ export class Chyk<D = any> {
   }
   abortLoading() {
     console.log("abortLoading")
-    Object.values(this.states).forEach((state) => {
-      state.abortController && state.abortController.abort()
+    this.states.forEach((state) => {
+      state.abortController?.abort()
       state.loading = false
     })
   }
 
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.states).forEach((state) => {
-      if (state.loading) {
-        state.statusCode = statusCode
-      }
+    this.states.forEach((state) => {
+      if (state.loading) state.statusCode = statusCode
     })
   }
   set404 = (): void => {

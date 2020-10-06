@@ -13,11 +13,11 @@ const { DISABLE_SSR, PORT, WDS_PORT } = env
 const server = createServer(async (request, response) => {
   try {
     const pathname: string = request.url || ""
-    const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
     if (DISABLE_SSR === "true") {
       response.statusCode = 200
       response.end(template({ html: "", data: null, statusCode: 200 }))
     } else {
+      const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
       await chyk.loadData(pathname)
       const html = renderToString(createElement(ChykStaticComponent, { chyk }))
       const { data, statusCode } = chyk.state
