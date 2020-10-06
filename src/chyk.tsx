@@ -16,7 +16,7 @@ export type TChykLocationState = {
   statusCode: TStatusCode
   data?: TLocationData
 }
-export type TChykLocationsStates = Record<string, TChykLocationState>
+export type TChykLocationsStates = TChykLocationState[]
 
 type TChykProps<D = any> = {
   routes: TRouteConfig[]
@@ -50,11 +50,11 @@ export class Chyk<D = any> {
     return Boolean(this.history)
   }
   get loading(): boolean {
-    return Object.values(this.locationStates).some((state) => state.loading)
+    return Object.values(this.states).some((state) => state.loading)
   }
 
-  locationStates: TChykLocationsStates = {}
-  private location: Location = { pathname: "" } as any
+  states: TChykLocationsStates = []
+  i: number = 0
 
   constructor(props: TChykProps<D>) {
     this.routes = props.routes
@@ -66,8 +66,7 @@ export class Chyk<D = any> {
       this.onLoadError = props.onLoadError
     }
     if (this.history) {
-      this.location = this.history.location
-      this.mergeLocationState(this.location.pathname, {
+      this.mergeLocationState(this.i, {
         data: props.data,
         location: this.history.location,
         ...(props.statusCode ? { statusCode: props.statusCode } : null),
@@ -88,16 +87,16 @@ export class Chyk<D = any> {
     }
     chykHydrateOrRender(this)
   }
-  private mergeLocationState(pathname: string, state: Partial<TChykLocationState>) {
-    const _state = this.locationStates[pathname] || {}
-    this.locationStates[pathname] = Object.assign(_state, state)
+  private mergeLocationState(i: number, state: Partial<TChykLocationState>) {
+    const _state = this.states[i] || {}
+    this.states[i] = Object.assign(_state, state)
   }
 
-  getLocationState(pathname: string): TChykLocationState {
-    return this.locationStates[pathname]
+  getLocationState(i: number): TChykLocationState {
+    return this.states[i]
   }
   get locationState(): TChykLocationState {
-    return this.locationStates[this.location.pathname]
+    return this.states[this.i]
   }
   get statusCode(): TStatusCode {
     return this.locationState.statusCode
@@ -122,8 +121,8 @@ export class Chyk<D = any> {
 
       const matches = matchRoutes(this.routes, pathname)
       const diffedMatches = matches.filter((m) => !this.matchesData[m.match.url])
-
-      this.mergeLocationState(pathname, {
+      const i = this.i + 1
+      this.mergeLocationState(i, {
         matches,
         pathname,
         location,
@@ -136,7 +135,7 @@ export class Chyk<D = any> {
         loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
-      this.location = location
+      this.i = i
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.matchesData[key] = matchData
       })
@@ -146,7 +145,7 @@ export class Chyk<D = any> {
         return p
       }, {})
 
-      this.mergeLocationState(pathname, {
+      this.mergeLocationState(i, {
         data: matchesData,
         loading: false,
       })
@@ -163,7 +162,7 @@ export class Chyk<D = any> {
   }
   abortLoading() {
     console.log("abortLoading")
-    Object.values(this.locationStates).forEach((state) => {
+    Object.values(this.states).forEach((state) => {
       state.abortController && state.abortController.abort()
       state.loading = false
     })
@@ -173,7 +172,7 @@ export class Chyk<D = any> {
     return this.statusCode === 404
   }
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.locationStates).forEach((state) => {
+    Object.values(this.states).forEach((state) => {
       if (state.loading) {
         state.statusCode = statusCode
       }
