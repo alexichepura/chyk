@@ -8,7 +8,7 @@ type TLoadDataProps<M> = {
   match: match<M>
   abortController: AbortController
 }
-export type TLocationData = any
+export type TLocationData = Record<string, any>
 export type TLoadDataResult<D = TLocationData> = D
 export type TLoadData<D, M, Deps> = (
   options: TLoadDataProps<M>,

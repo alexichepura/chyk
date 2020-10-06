@@ -14,7 +14,7 @@ export type TState = {
   location: Location
   loading: boolean
   statusCode: TStatusCode
-  data?: TLocationData
+  keys: Record<string, string>
 }
 export type TStates = TState[]
 
@@ -51,14 +51,11 @@ export class Chyk<D = any> {
   }
 
   states: TStates = []
-  i: number = 0
-  matchesData: Record<string, any> = {}
+  i: number = -1
+  data: Record<string, any> = {}
 
   get state(): TState {
     return this.states[this.i]
-  }
-  get data(): any {
-    return this.state.data
   }
   get is404(): boolean {
     return this.state.statusCode === 404
@@ -73,26 +70,19 @@ export class Chyk<D = any> {
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
+    if (props.data) {
+      this.data = props.data
+    }
     if (this.history) {
-      this.merge(this.i, {
-        data: props.data,
-        location: this.history.location,
-        ...(props.statusCode ? { statusCode: props.statusCode } : null),
-      })
-      this.loadAndRender(Boolean(props.data))
+      this.loadAndRender()
     }
   }
 
-  async loadAndRender(disableDataLoading: boolean) {
+  async loadAndRender() {
     if (!this.history) {
       throw "No history"
     }
-    if (!disableDataLoading) {
-      await this.loadData(this.history.location)
-    } else {
-      const matches = matchRoutes(this.routes, this.history.location.pathname)
-      await loadBranchComponents(matches)
-    }
+    await this.loadData(this.history.location)
     chykHydrateOrRender(this)
   }
   private merge(i: number, state: Partial<TState>) {
@@ -109,9 +99,16 @@ export class Chyk<D = any> {
       const { pathname } = location
 
       const matches = matchRoutes(this.routes, pathname)
-      const diffedMatches = matches.filter((m) => !this.matchesData[m.match.url])
+
+      const keys = matches.reduce<Record<string, string>>((p, c) => {
+        p[c.route.dataKey] = c.match.url
+        return p
+      }, {})
+
+      const diffedMatches = matches.filter((m) => !this.data[m.match.url])
       const i = this.i + 1
       this.merge(i, {
+        keys,
         matches,
         pathname,
         location,
@@ -124,26 +121,16 @@ export class Chyk<D = any> {
         loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
-      console.log(matches, diffedMatches, loadedData)
       this.i = i
       Object.entries(loadedData).forEach(([key, matchData]) => {
-        this.matchesData[key] = matchData
+        this.data[key] = matchData
       })
 
-      const matchesData = matches.reduce<Record<string, any>>((p, c) => {
-        p[c.route.dataKey] = this.matchesData[c.match.url]
-        return p
-      }, {})
-      // console.log(loadedData, this.matchesData, matchesData)
-      this.merge(i, {
-        data: matchesData,
-        loading: false,
-      })
+      this.merge(i, { loading: false })
       return true
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error
-        // console.log("AbortError", err)
       } else {
         this.onLoadError(err)
       }

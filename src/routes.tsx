@@ -13,8 +13,8 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
   return (
     <Switch {...switchProps}>
       {routes.map((route, i) => {
-        const ctx = chyk.state
-        const keyData = (ctx.data && route.dataKey && ctx.data[route.dataKey]) || undefined
+        const matchKey = route.dataKey && chyk.state.keys[route.dataKey]
+        const matchData = matchKey && chyk.data[matchKey]
         return (
           <Route
             key={route.key || i}
@@ -26,17 +26,17 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
                 route.render({
                   ...props,
                   ...extraProps,
-                  ...keyData,
+                  ...matchData,
                   route: route,
-                  abortController: ctx.abortController,
+                  abortController: chyk.state.abortController,
                 })) ||
               (route.component && (
                 <route.component
                   {...props}
                   {...extraProps}
-                  {...keyData}
+                  {...matchData}
                   route={route}
-                  abortController={ctx.abortController}
+                  abortController={chyk.state.abortController}
                 />
               ))
             }

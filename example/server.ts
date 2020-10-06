@@ -20,7 +20,8 @@ const server = createServer(async (request, response) => {
       const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
       await chyk.loadData(pathname)
       const html = renderToString(createElement(ChykStaticComponent, { chyk }))
-      const { data, statusCode } = chyk.state
+      const { statusCode } = chyk.state
+      const { data } = chyk
       response.statusCode = statusCode
       response.end(template({ html, data, statusCode }))
     }
