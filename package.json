@@ -64,5 +64,5 @@
   "sideEffects": false,
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "version": "0.11.0-alpha.2"
+  "version": "0.11.0-beta.1"
 }
