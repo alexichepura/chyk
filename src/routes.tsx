@@ -1,7 +1,7 @@
 import React, { FC } from "react"
 import { Route, Switch } from "react-router"
-import { useChyk } from "./hooks"
 import { TRouteConfig } from "./match"
+import { useChyk } from "./render"
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]

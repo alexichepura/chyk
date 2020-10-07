@@ -1,10 +1,13 @@
-import React, { FC, useEffect, useState } from "react"
+import React, { createContext, FC, useContext, useEffect, useState } from "react"
 import { hydrate, render } from "react-dom"
 import { Route, Router, StaticRouter } from "react-router"
-import { useChyk } from "."
 import { Chyk } from "./chyk"
-import { ChykContext } from "./hooks"
 import { DataRoutes } from "./routes"
+
+export const ChykContext = createContext((null as any) as Chyk)
+export function useChyk<D = any>(): Chyk<D> {
+  return useContext(ChykContext)
+}
 
 export const chykHydrateOrRender = (chyk: Chyk) => {
   if (!chyk.el) {
