@@ -1,7 +1,7 @@
 import React, { FC } from "react"
 import { Route, Switch } from "react-router"
-import { useChyk } from "./hooks"
 import { TRouteConfig } from "./match"
+import { useChyk } from "./render"
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]
@@ -13,30 +13,30 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, swit
   return (
     <Switch {...switchProps}>
       {routes.map((route, i) => {
-        const ctx = chyk.locationState
-        const keyData = (ctx.data && route.dataKey && ctx.data[route.dataKey]) || undefined
+        const matchKey = route.dataKey && chyk.state.keys[route.dataKey]
+        const matchData = matchKey && chyk.data[matchKey]
         return (
           <Route
             key={route.key || i}
             path={route.path}
             exact={route.exact}
             strict={route.strict}
-            render={props =>
+            render={(props) =>
               (route.render &&
                 route.render({
                   ...props,
                   ...extraProps,
-                  ...keyData,
+                  ...matchData,
                   route: route,
-                  abortController: ctx.abortController,
+                  abortController: chyk.state.abortController,
                 })) ||
               (route.component && (
                 <route.component
                   {...props}
                   {...extraProps}
-                  {...keyData}
+                  {...matchData}
                   route={route}
-                  abortController={ctx.abortController}
+                  abortController={chyk.state.abortController}
                 />
               ))
             }

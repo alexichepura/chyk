@@ -23,8 +23,8 @@ export class DbClient {
     return 2020
   }
   getArticle = async (slug: string, signal: AbortSignal) => {
-    await delayWithSignal(300, signal)
-    return articles.find(article => article.slug === slug)
+    await delayWithSignal(1000, signal)
+    return articles.find((article) => article.slug === slug)
   }
   getArticles = async (signal: AbortSignal) => {
     await delayWithSignal(400, signal)
@@ -37,7 +37,7 @@ export class DbClient {
 }
 
 export const delay = (ms: number = 10): Promise<void> =>
-  new Promise(resolve =>
+  new Promise((resolve) =>
     setTimeout(() => {
       resolve()
     }, ms)

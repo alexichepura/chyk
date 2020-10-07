@@ -1,22 +1,29 @@
-import { createBrowserHistory, createLocation, History, Location } from "history"
+import { Action, createBrowserHistory, createLocation, History, Location } from "history"
 import { ComponentType } from "react"
 import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
-import { loadBranchComponents, loadBranchDataObject, TLocationData, TRouteConfig } from "./match"
+import {
+  getKey,
+  loadBranchComponents,
+  loadBranchDataObject,
+  matchesRoutesKeys,
+  TLocationData,
+  TRouteConfig,
+} from "./match"
 import { chykHydrateOrRender } from "./render"
 
 export type TStatusCode = number
 
-export type TChykLocationState = {
+export type TState = {
   pathname: string
   matches: MatchedRoute<{}>[]
-  abortController: AbortController
+  abortController?: AbortController
   location: Location
   loading: boolean
   statusCode: TStatusCode
-  data?: TLocationData
+  keys: Record<string, string>
 }
-export type TChykLocationsStates = Record<string, TChykLocationState>
+export type TStates = TState[]
 
 type TChykProps<D = any> = {
   routes: TRouteConfig[]
@@ -37,7 +44,6 @@ export class Chyk<D = any> {
     }
     return this._el
   }
-
   history: History | null
   onLoadError: (err: Error) => void = (err) => {
     throw err
@@ -46,15 +52,19 @@ export class Chyk<D = any> {
   routes: TRouteConfig[]
   deps: D extends undefined ? never : D
   component?: ComponentType
-  get isBrowser(): boolean {
-    return Boolean(this.history)
-  }
   get loading(): boolean {
-    return Object.values(this.locationStates).some((state) => state.loading)
+    return this.states.some((state) => state.loading)
   }
-
-  private locationStates: TChykLocationsStates = {}
-  private location: Location = { pathname: "" } as any
+  maxStates = 2
+  states: TStates = []
+  private i: number = -1
+  data: Record<string, any> = {}
+  get state(): TState {
+    return this.states[this.i]
+  }
+  get is404(): boolean {
+    return this.state.statusCode === 404
+  }
 
   constructor(props: TChykProps<D>) {
     this.routes = props.routes
@@ -65,146 +75,91 @@ export class Chyk<D = any> {
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
+    if (props.data) {
+      this.data = props.data
+    }
+    if (props.statusCode) {
+      this.merge(0, { statusCode: props.statusCode })
+    }
     if (this.history) {
-      this.location = this.history.location
-      this.listen()
-      this.mergeLocationState(this.location.pathname, {
-        data: props.data,
-        location: this.history.location,
-        ...(props.statusCode ? { statusCode: props.statusCode } : null),
-      })
-      this.loadAndRender(Boolean(props.data))
+      this.loadData(this.history.location).then(() => chykHydrateOrRender(this))
     }
   }
 
-  async loadAndRender(disableDataLoading: boolean) {
-    if (!this.history) {
-      throw "No history"
-    }
-    if (!disableDataLoading) {
-      await this.loadData(this.history.location)
-    } else {
-      const matches = matchRoutes(this.routes, this.history.location.pathname)
-      await loadBranchComponents(matches)
-    }
-    chykHydrateOrRender(this)
+  private merge(i: number, state: Partial<TState>) {
+    this.states[i] = { ...(this.states[i] || {}), ...state }
   }
 
-  upsertLocationStateLoading(
-    abortController: AbortController,
-    pathname: string,
-    matches: MatchedRoute<{}>[],
-    location: Location
-  ) {
-    this.mergeLocationState(pathname, {
+  loadData = async (_location: string | Location, action?: Action): Promise<boolean> => {
+    const i = this.i + 1
+    const abortController = Boolean(this.history)
+      ? new AbortController()
+      : ({ signal: { aborted: false } } as AbortController) // mock on server
+
+    const location = typeof _location === "string" ? createLocation(_location) : _location
+    const { pathname } = location
+    const matches = matchRoutes(this.routes, pathname)
+    const keys = matchesRoutesKeys(matches)
+
+    if (i === 0) {
+      this.merge(0, { location, matches, keys })
+    }
+    const diffedMatches = matches.filter((m) => {
+      const route = m.route as TRouteConfig
+      const key = getKey(route.dataKey, m.match.url)
+      return (
+        !key ||
+        !this.data[key] ||
+        (action === "PUSH" &&
+          route.dataKey &&
+          this.state.keys[route.dataKey] !== keys[route.dataKey])
+      )
+    })
+    console.log(diffedMatches)
+    this.merge(i, {
+      keys,
       matches,
       pathname,
       location,
       abortController,
-      statusCode: 200,
       loading: true,
     })
-  }
-  updateLocationStateLoaded(pathname: string, data: any) {
-    this.mergeLocationState(pathname, {
-      data,
-      loading: false,
-    })
-  }
-  private mergeLocationState(pathname: string, state: Partial<TChykLocationState>) {
-    const _state = this.locationStates[pathname] || {}
-    this.locationStates[pathname] = Object.assign(_state, state)
-  }
 
-  getLocationState(pathname: string): TChykLocationState {
-    return this.locationStates[pathname]
-  }
-  get locationState(): TChykLocationState {
-    return this.locationStates[this.location.pathname]
-  }
-  get statusCode(): TStatusCode {
-    return this.locationState.statusCode
-  }
-  get data(): any {
-    return this.locationState.data
-  }
-  cleanLocationState(pathname: string) {
-    delete this.locationStates[pathname]
-  }
-
-  loadData = async (_location: string | Location): Promise<boolean> => {
     try {
-      const abortController = this.isBrowser
-        ? new AbortController()
-        : ({ signal: { aborted: false } } as AbortController) // mock on server
-
-      const location = typeof _location === "string" ? createLocation(_location) : _location
-      const { pathname } = location
-
-      const matches = matchRoutes(this.routes, pathname)
-      this.upsertLocationStateLoading(abortController, pathname, matches, location)
-      const [data] = await Promise.all([
-        loadBranchDataObject(this, matches, abortController),
+      const [loadedData] = await Promise.all([
+        loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
       ])
-
-      this.location = location
-      this.updateLocationStateLoaded(pathname, data)
-      return true
+      Object.entries(loadedData).forEach(([key, matchData]) => {
+        this.data[key] = matchData
+      })
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error
-        // console.log("AbortError", err)
       } else {
         this.onLoadError(err)
       }
       return false
     }
+
+    this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
+    this.i = i
+    if (this.states.length > this.maxStates) {
+      this.states.splice(0, this.states.length - this.maxStates)
+      this.i = this.maxStates - 1
+    }
+    return true
   }
   abortLoading() {
-    Object.values(this.locationStates).forEach((state) => {
-      state.abortController && state.abortController.abort()
+    this.states.forEach((state) => {
+      state.abortController?.abort()
       state.loading = false
     })
   }
-
-  get is404(): boolean {
-    return this.statusCode === 404
-  }
   setStatus(statusCode: TStatusCode) {
-    Object.values(this.locationStates).forEach((state) => {
-      if (state.loading) {
-        state.statusCode = statusCode
-      }
-    })
+    this.states[this.i + 1].statusCode = statusCode
   }
   set404 = (): void => {
     this.setStatus(404)
   }
-
-  handleLocationChange = async (new_location: Location): Promise<boolean> => {
-    const location = this.locationState.location
-    // console.log("handleLocationChange: ", location.pathname, new_location.pathname)
-    if (location.pathname === new_location.pathname) {
-      return false
-    }
-
-    this.abortLoading()
-    if (this.getLocationState(new_location.pathname)) {
-      return false
-    }
-
-    const is_success = await this.loadData(new_location)
-    this.cleanLocationState(is_success ? location.pathname : new_location.pathname)
-    return true
-  }
-
-  listen = () => {
-    this.history?.listen((location) => {
-      // console.log("listen", { ...location })
-      this.switchRoute && this.switchRoute(location)
-    })
-  }
-
-  switchRoute: null | ((location: Location) => void) = null
 }

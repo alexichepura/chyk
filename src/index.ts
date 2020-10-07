@@ -1,5 +1,10 @@
 export { Chyk } from "./chyk"
-export { ChykContext, useChyk } from "./hooks"
 export { TLoadData, TRouteComponentProps, TRouteConfig } from "./match"
-export { ChykComponent, chykHydrateOrRender, ChykStaticComponent } from "./render"
+export {
+  ChykComponent,
+  ChykContext,
+  chykHydrateOrRender,
+  ChykStaticComponent,
+  useChyk,
+} from "./render"
 export { DataRoutes } from "./routes"

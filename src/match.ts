@@ -8,7 +8,7 @@ type TLoadDataProps<M> = {
   match: match<M>
   abortController: AbortController
 }
-export type TLocationData = any
+export type TLocationData = Record<string, any>
 export type TLoadDataResult<D = TLocationData> = D
 export type TLoadData<D, M, Deps> = (
   options: TLoadDataProps<M>,
@@ -42,7 +42,7 @@ export const loadBranchDataObject = async (
       ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
         return route.loadData
           ? {
-              dataKey: route.dataKey,
+              dataKey: getKey(route.dataKey, match.url),
               promise: route.loadData({ chyk, match, abortController }, chyk.deps),
             }
           : (Promise.resolve(null) as any)
@@ -50,21 +50,18 @@ export const loadBranchDataObject = async (
     )
     .filter(Boolean)
 
-  const results = await Promise.all(promisesConfig.map(c => c.promise))
-  const resultsObject = results.reduce(
-    (prev, current, index) => {
-      prev[promisesConfig[index].dataKey] = current
-      return prev
-    },
-    {} as Record<string, TLoadDataResult>
-  )
+  const results = await Promise.all(promisesConfig.map((c) => c.promise))
+  const resultsObject = results.reduce((prev, current, index) => {
+    prev[promisesConfig[index].dataKey] = current
+    return prev
+  }, {} as Record<string, TLoadDataResult>)
   return resultsObject
 }
 
 export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React.ComponentType[]> {
   return Promise.all(
-    matches.map(match => {
-      const component = match.route.component as (React.ComponentType | TAsyncComponent)
+    matches.map((match) => {
+      const component = match.route.component as React.ComponentType | TAsyncComponent
       if (isAsyncComponent(component)) {
         return component.load()
       }
@@ -72,3 +69,15 @@ export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React
     })
   )
 }
+
+export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>
+  k1 && k2 ? k1 + ":" + k2 : undefined
+
+export const matchesRoutesKeys = (matches: MatchedRoute<{}>[]) =>
+  matches.reduce<Record<string, string>>((p, c) => {
+    const key = getKey(c.route.dataKey, c.match.url)
+    if (key) {
+      p[c.route.dataKey] = key
+    }
+    return p
+  }, {})

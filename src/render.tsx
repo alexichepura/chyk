@@ -1,10 +1,13 @@
-import React, { FC } from "react"
+import React, { createContext, FC, useContext, useEffect, useState } from "react"
 import { hydrate, render } from "react-dom"
-import { Router, StaticRouter } from "react-router"
+import { Route, Router, StaticRouter } from "react-router"
 import { Chyk } from "./chyk"
-import { ChykContext } from "./hooks"
-import { ChykPreloader } from "./preloader"
 import { DataRoutes } from "./routes"
+
+export const ChykContext = createContext((null as any) as Chyk)
+export function useChyk<D = any>(): Chyk<D> {
+  return useContext(ChykContext)
+}
 
 export const chykHydrateOrRender = (chyk: Chyk) => {
   if (!chyk.el) {
@@ -22,11 +25,11 @@ export const ChykComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   return (
     <ChykContext.Provider value={chyk}>
       <Router history={chyk.history}>
-        <ChykPreloader>
+        <Preloader>
           <WrapperComponent>
             <DataRoutes routes={chyk.routes} />
           </WrapperComponent>
-        </ChykPreloader>
+        </Preloader>
       </Router>
     </ChykContext.Provider>
   )
@@ -37,7 +40,7 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   const WrapperComponent = chyk.component || React.Fragment
   return (
     <ChykContext.Provider value={chyk}>
-      <StaticRouter location={chyk.locationState.location} context={chyk.staticRouterContext}>
+      <StaticRouter location={chyk.state.location} context={chyk.staticRouterContext}>
         <WrapperComponent>
           <DataRoutes routes={chyk.routes} />
         </WrapperComponent>
@@ -46,3 +49,24 @@ export const ChykStaticComponent: FC<{ chyk: Chyk }> = ({ chyk }) => {
   )
 }
 ChykStaticComponent.displayName = "ChykStaticComponent"
+
+const usePreloader = () => {
+  const chyk = useChyk()
+  const [, set_render_location] = useState(chyk.state.location) // just to rerender
+
+  useEffect(() => {
+    chyk.history?.listen(async (new_location, action) => {
+      chyk.abortLoading()
+      await chyk.loadData(new_location, action)
+      set_render_location(new_location)
+    })
+  }, [])
+
+  return chyk.state.location
+}
+
+export const Preloader: FC = ({ children }) => {
+  const render_location = usePreloader()
+  return <Route location={render_location} render={() => children} />
+}
+Preloader.displayName = "Preloader"

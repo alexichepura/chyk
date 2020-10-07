@@ -28,6 +28,11 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
               {a.title}
             </Link>
           ))}
+          {articles.map((a) => (
+            <Link key={"sub" + a.slug} to={"/subarticle/" + a.slug} style={link_style}>
+              sub: {a.title}
+            </Link>
+          ))}
           <Link to="/article-404" style={link_style}>
             Article 404
           </Link>
@@ -107,7 +112,7 @@ export const Article: FC<TArticleProps> = (props) => {
   )
 }
 
-const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = async (
+const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async (
   { abortController, match, chyk },
   { apiSdk }
 ) => {
@@ -115,6 +120,7 @@ const articleLoader: TLoadData<Partial<TArticleData>, TArticleMatchParams> = asy
   const article = await apiSdk.getArticle(match.params.slug, abortController.signal)
   if (!article) {
     chyk.set404()
+    return null
   }
   return { article }
 }
@@ -167,6 +173,13 @@ export const routes: TRouteConfig[] = [
         loadData: longLoadingLoader,
       },
       {
+        path: "/subarticle/:slug",
+        component: Article as FC,
+        exact: true,
+        dataKey: "subarticle",
+        loadData: articleLoader,
+      },
+      {
         path: "/:slug",
         component: Article as FC,
         exact: true,
@@ -175,6 +188,8 @@ export const routes: TRouteConfig[] = [
       },
       {
         component: NotFound as FC,
+        path: "/*",
+        dataKey: "404",
         loadData: async ({ chyk }) => chyk.set404(),
       },
     ],
