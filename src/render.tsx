@@ -55,9 +55,9 @@ const usePreloader = () => {
   const [, set_render_location] = useState(chyk.state.location) // just to rerender
 
   useEffect(() => {
-    chyk.history?.listen(async (new_location) => {
+    chyk.history?.listen(async (new_location, action) => {
       chyk.abortLoading()
-      await chyk.loadData(new_location)
+      await chyk.loadData(new_location, action)
       set_render_location(new_location)
     })
   }, [])

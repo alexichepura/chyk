@@ -1,4 +1,4 @@
-import { createBrowserHistory, createLocation, History, Location } from "history"
+import { Action, createBrowserHistory, createLocation, History, Location } from "history"
 import { ComponentType } from "react"
 import { StaticRouterContext } from "react-router"
 import { MatchedRoute, matchRoutes } from "react-router-config"
@@ -6,6 +6,7 @@ import {
   getKey,
   loadBranchComponents,
   loadBranchDataObject,
+  matchesRoutesKeys,
   TLocationData,
   TRouteConfig,
 } from "./match"
@@ -89,35 +90,42 @@ export class Chyk<D = any> {
     this.states[i] = { ...(this.states[i] || {}), ...state }
   }
 
-  loadData = async (_location: string | Location): Promise<boolean> => {
-    try {
-      const abortController = Boolean(this.history)
-        ? new AbortController()
-        : ({ signal: { aborted: false } } as AbortController) // mock on server
+  loadData = async (_location: string | Location, action?: Action): Promise<boolean> => {
+    const i = this.i + 1
+    const abortController = Boolean(this.history)
+      ? new AbortController()
+      : ({ signal: { aborted: false } } as AbortController) // mock on server
 
-      const location = typeof _location === "string" ? createLocation(_location) : _location
-      const { pathname } = location
-      const matches = matchRoutes(this.routes, pathname)
-      const keys = matches.reduce<Record<string, string>>((p, c) => {
-        const key = getKey(c.route.dataKey, c.match.url)
-        if (key) {
-          p[c.route.dataKey] = key
-        }
-        return p
-      }, {})
-      const diffedMatches = matches.filter((m) => {
-        const key = getKey((m.route as TRouteConfig).dataKey, m.match.url)
-        return !key || !this.data[key]
-      })
-      const i = this.i + 1
-      this.merge(i, {
-        keys,
-        matches,
-        pathname,
-        location,
-        abortController,
-        loading: true,
-      })
+    const location = typeof _location === "string" ? createLocation(_location) : _location
+    const { pathname } = location
+    const matches = matchRoutes(this.routes, pathname)
+    const keys = matchesRoutesKeys(matches)
+
+    if (i === 0) {
+      this.merge(0, { location, matches, keys })
+    }
+    const diffedMatches = matches.filter((m) => {
+      const route = m.route as TRouteConfig
+      const key = getKey(route.dataKey, m.match.url)
+      return (
+        !key ||
+        !this.data[key] ||
+        (action === "PUSH" &&
+          route.dataKey &&
+          this.state.keys[route.dataKey] !== keys[route.dataKey])
+      )
+    })
+    console.log(diffedMatches)
+    this.merge(i, {
+      keys,
+      matches,
+      pathname,
+      location,
+      abortController,
+      loading: true,
+    })
+
+    try {
       const [loadedData] = await Promise.all([
         loadBranchDataObject(this, diffedMatches, abortController),
         loadBranchComponents(matches),
@@ -125,13 +133,6 @@ export class Chyk<D = any> {
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData
       })
-      this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
-      this.i = i
-      if (this.states.length > this.maxStates) {
-        this.states.splice(0, this.states.length - this.maxStates)
-        this.i = this.maxStates - 1
-      }
-      return true
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error
@@ -140,6 +141,14 @@ export class Chyk<D = any> {
       }
       return false
     }
+
+    this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
+    this.i = i
+    if (this.states.length > this.maxStates) {
+      this.states.splice(0, this.states.length - this.maxStates)
+      this.i = this.maxStates - 1
+    }
+    return true
   }
   abortLoading() {
     this.states.forEach((state) => {

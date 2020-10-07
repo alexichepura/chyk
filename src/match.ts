@@ -72,3 +72,12 @@ export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React
 
 export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>
   k1 && k2 ? k1 + ":" + k2 : undefined
+
+export const matchesRoutesKeys = (matches: MatchedRoute<{}>[]) =>
+  matches.reduce<Record<string, string>>((p, c) => {
+    const key = getKey(c.route.dataKey, c.match.url)
+    if (key) {
+      p[c.route.dataKey] = key
+    }
+    return p
+  }, {})
