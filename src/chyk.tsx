@@ -54,8 +54,9 @@ export class Chyk<D = any> {
   get loading(): boolean {
     return this.states.some((state) => state.loading)
   }
+  maxStates = 2
   states: TStates = []
-  i: number = -1
+  private i: number = -1
   data: Record<string, any> = {}
   get state(): TState {
     return this.states[this.i]
@@ -126,6 +127,10 @@ export class Chyk<D = any> {
       })
       this.merge(i, { loading: false, statusCode: this.states[i].statusCode || 200 })
       this.i = i
+      if (this.states.length > this.maxStates) {
+        this.states.splice(0, this.states.length - this.maxStates)
+        this.i = this.maxStates - 1
+      }
       return true
     } catch (err) {
       if (err.name === "AbortError") {
