@@ -115,7 +115,6 @@ export class Chyk<D = any> {
           this.state.keys[route.dataKey] !== keys[route.dataKey])
       )
     })
-    console.log(diffedMatches)
     this.merge(i, {
       keys,
       matches,
