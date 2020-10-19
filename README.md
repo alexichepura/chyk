@@ -12,6 +12,8 @@ Chyk is a microframework to build universal SPAs with React.
 
 - preload route data
 - code splitting via async components
+- data diff
+- scroll restoration
 - passing SSR data to the browser for the immediate hydration
 - aborting data load using [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort) if switched to another route
 - 404 and other status pages
@@ -21,7 +23,7 @@ Chyk is a microframework to build universal SPAs with React.
 - Written in TypeScript
 - Zero dependencies
 - Only peer dependencies: react, react-dom, react-router, react-router-dom, react-router-config, history
-- [**2.4kB gzipped**](https://bundlephobia.com/result?p=chyk)
+- [**2.3kB gzipped**](https://bundlephobia.com/result?p=chyk)
 
 ## Install
 
