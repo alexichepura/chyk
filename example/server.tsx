@@ -1,10 +1,11 @@
 require("dotenv").config()
 import { createServer } from "http"
-import { createElement } from "react"
+import React from "react"
 import { renderToString } from "react-dom/server"
+import { StaticRouter } from "react-router"
+import { ChykContext, DataRoutes } from "../src"
 import { Chyk } from "../src/chyk"
-import { ChykStaticComponent } from "../src/render"
-import { routes, TDeps } from "./app"
+import { getBranches, routes, TDeps } from "./app"
 import { DbClient } from "./db"
 import { env } from "./env"
 
@@ -17,9 +18,15 @@ const server = createServer(async (request, response) => {
       response.statusCode = 200
       response.end(template({ html: "", data: null, statusCode: 200 }))
     } else {
-      const chyk = new Chyk<TDeps>({ routes, deps: { apiSdk: new DbClient() } })
-      await chyk.loadData(pathname)
-      const html = renderToString(createElement(ChykStaticComponent, { chyk }))
+      const chyk = new Chyk<TDeps>({ getBranches, deps: { apiSdk: new DbClient() } })
+      await chyk.loadData(getBranches(routes, pathname), pathname)
+      const html = renderToString(
+        <ChykContext.Provider value={chyk}>
+          <StaticRouter location={chyk.state.location}>
+            <DataRoutes routes={routes} chyk={chyk} />
+          </StaticRouter>
+        </ChykContext.Provider>
+      )
       const { statusCode } = chyk.state
       const { data } = chyk
       response.statusCode = statusCode

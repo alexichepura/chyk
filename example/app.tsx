@@ -1,9 +1,31 @@
 import React, { FC } from "react"
-import { Link } from "react-router-dom"
-import { useChyk } from "../src"
-import { TLoadData as TChykLoadData, TRouteComponentProps, TRouteConfig } from "../src/match"
-import { DataRoutes } from "../src/routes"
+import { matchRoutes } from "react-router-config"
+import { Link, match } from "react-router-dom"
+import { Chyk, useChyk } from "../src"
+import { TBranchItem } from "../src/chyk"
+import { TRouteConfig } from "../src/match"
+import { DataRoutes, useRoute } from "../src/routes"
 import { DbClient, TArticle } from "./db"
+
+export const getBranches = (
+  routes: TRouteConfig[] | undefined,
+  pathname: string
+): TBranchItem[] => {
+  const matches = matchRoutes(routes || [], pathname)
+  return matches.map((m) => ({ route: m.route, matchUrl: m.match.url }))
+}
+
+type TLoadDataProps<M> = {
+  chyk: Chyk
+  match: match<M>
+  abortController: AbortController
+}
+export type TLocationData = Record<string, any>
+export type TLoadDataResult<D = TLocationData> = D
+export type TChykLoadData<D, M, Deps> = (
+  options: TLoadDataProps<M>,
+  deps: Deps
+) => Promise<TLoadDataResult<D>>
 
 export type TDeps = { apiSdk: DbClient }
 type TLoadData<T, M = any> = TChykLoadData<T, M, TDeps>
@@ -15,8 +37,11 @@ export type TLayoutData = {
   year: number
   articles: TArticle[]
 }
-type TLayoutProps = TRouteComponentProps<TLayoutData>
-export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
+export const Layout: FC = () => {
+  const {
+    data: { articles, year },
+    route,
+  } = useRoute<TLayoutData>()
   const chyk = useChyk()
   return (
     <div>
@@ -54,7 +79,11 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
         </div>
       </header>
       <main style={{ marginBottom: "1000px" }}>
-        {chyk.is404 ? <NotFound /> : route.routes && <DataRoutes routes={route.routes} />}
+        {chyk.is404 ? (
+          <NotFound />
+        ) : (
+          route.routes && <DataRoutes routes={route.routes} chyk={chyk} />
+        )}
       </main>
       <div id="hash1" style={{ marginBottom: "1000px" }}>
         hash1
@@ -77,20 +106,25 @@ const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSd
 export type THomeData = {
   articles: TArticle[]
 }
-type THomeProps = TRouteComponentProps<THomeData>
-export const Home: FC<THomeProps> = ({ articles }) => (
-  <div>
-    <h1>Page Home</h1>
+export const Home: FC = () => {
+  const {
+    data: { articles },
+  } = useRoute<THomeData>()
+  return (
     <div>
-      <h2>Articles</h2>
+      <h1>Page Home</h1>
       <div>
-        {articles.map((a) => (
-          <div key={a.slug}>{a.title}</div>
-        ))}
+        <h2>Articles</h2>
+        <div>
+          {articles.map((a) => (
+            <div key={a.slug}>{a.title}</div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
+
 const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk }) => {
   console.log("homeLoader")
   const articles = await apiSdk.getArticles(abortController.signal)
@@ -98,22 +132,23 @@ const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk })
 }
 
 // ARTICLE
-type TArticleMatchParams = { slug: string }
-type TArticleProps = TRouteComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
   article: TArticle
 }
-export const Article: FC<TArticleProps> = (props) => {
+export const Article: FC = () => {
+  const {
+    data: { article },
+  } = useRoute<TArticleData>()
   return (
     <div>
-      <h1>Page {props.article.title}</h1>
-      <article>{props.article.content}</article>
+      <h1>Page {article.title}</h1>
+      <article>{article.content}</article>
     </div>
   )
 }
 
-const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async (
-  { abortController, match, chyk },
+const articleLoader: TLoadData<TArticleData | null> = async (
+  { abortController, chyk, match },
   { apiSdk }
 ) => {
   console.log("articleLoader", match.params.slug)
@@ -126,16 +161,21 @@ const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async
 }
 
 // LongLoading
-type TLongLoadingProps = TRouteComponentProps<TLongLoadingData>
 export type TLongLoadingData = {
   longLoadingData: string
 }
-export const LongLoading: FC<TLongLoadingProps> = ({ longLoadingData }) => (
-  <div>
-    <h1>Long Loading (abort controller)</h1>
-    <article>{longLoadingData}</article>
-  </div>
-)
+export const LongLoading: FC = () => {
+  const {
+    data: { longLoadingData },
+  } = useRoute<TLongLoadingData>()
+  return (
+    <div>
+      <h1>Long Loading (abort controller)</h1>
+      <article>{longLoadingData}</article>
+    </div>
+  )
+}
+
 const longLoadingLoader: TLoadData<Partial<TLongLoadingData>> = async (
   { abortController },
   { apiSdk }

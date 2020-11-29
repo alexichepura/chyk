@@ -1,22 +1,19 @@
-import { Action, createBrowserHistory, createLocation, History, Location } from "history"
+import { Action, Location } from "history"
 import { ComponentType } from "react"
-import { StaticRouterContext } from "react-router"
-import { MatchedRoute, matchRoutes } from "react-router-config"
 import {
+  getBranchesKeys,
   getKey,
   loadBranchComponents,
   loadBranchDataObject,
-  matchesRoutesKeys,
-  TLocationData,
   TRouteConfig,
 } from "./match"
-import { chykHydrateOrRender } from "./render"
 
 export type TStatusCode = number
+export type TBranchItem = { route: TRouteConfig; matchUrl: string }
 
 export type TState = {
   pathname: string
-  matches: MatchedRoute<{}>[]
+  matches: TBranchItem[]
   abortController?: AbortController
   location: Location
   loading: boolean
@@ -25,32 +22,22 @@ export type TState = {
 }
 export type TStates = TState[]
 
+type TGetBranch = (routes: TRouteConfig[] | undefined, pathname: string) => TBranchItem[]
+
 type TChykProps<D = any> = {
-  routes: TRouteConfig[]
-  el?: HTMLElement | null
-  data?: TLocationData
+  data?: Record<string, any>
   statusCode?: TStatusCode
   deps: D extends undefined ? never : D
-  component?: ComponentType
-  history?: History
+  getBranches: TGetBranch
   onLoadError?: (err: Error) => void
 }
 
 export class Chyk<D = any> {
-  private _el: HTMLElement | undefined | null = null
-  get el(): HTMLElement {
-    if (!this._el) {
-      throw "No element"
-    }
-    return this._el
-  }
-  history: History | null
   onLoadError: (err: Error) => void = (err) => {
     throw err
   }
-  staticRouterContext: StaticRouterContext = {}
-  routes: TRouteConfig[]
   deps: D extends undefined ? never : D
+  getBranches: TGetBranch
   component?: ComponentType
   get loading(): boolean {
     return this.states.some((state) => state.loading)
@@ -67,11 +54,8 @@ export class Chyk<D = any> {
   }
 
   constructor(props: TChykProps<D>) {
-    this.routes = props.routes
     this.deps = props.deps
-    this.component = props.component
-    this._el = props.el
-    this.history = props.history ? props.history : props.el ? createBrowserHistory() : null
+    this.getBranches = props.getBranches
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
@@ -81,53 +65,45 @@ export class Chyk<D = any> {
     if (props.statusCode) {
       this.merge(0, { statusCode: props.statusCode })
     }
-    if (this.history) {
-      this.loadData(this.history.location).then(() => chykHydrateOrRender(this))
-    }
   }
 
   private merge(i: number, state: Partial<TState>) {
     this.states[i] = { ...(this.states[i] || {}), ...state }
   }
 
-  loadData = async (_location: string | Location, action?: Action): Promise<boolean> => {
+  loadData = async (branch: TBranchItem[], pathname: string, action?: Action): Promise<boolean> => {
     const i = this.i + 1
-    const abortController = Boolean(this.history)
-      ? new AbortController()
-      : ({ signal: { aborted: false } } as AbortController) // mock on server
+    const abortController =
+      "AbortController" in global
+        ? new AbortController()
+        : ({ signal: { aborted: false } } as AbortController)
 
-    const location = typeof _location === "string" ? createLocation(_location) : _location
-    const { pathname } = location
-    const matches = matchRoutes(this.routes, pathname)
-    const keys = matchesRoutesKeys(matches)
+    const keys = getBranchesKeys(branch)
 
     if (i === 0) {
-      this.merge(0, { location, matches, keys })
+      this.merge(0, { keys })
     }
-    const diffedMatches = matches.filter((m) => {
-      const route = m.route as TRouteConfig
-      const key = getKey(route.dataKey, m.match.url)
+    const diffedMatches = branch.filter((branchItem) => {
+      const key = getKey(branchItem.route.dataKey, branchItem.matchUrl)
+      const data = key ? this.data[key] : null
       return (
-        !key ||
-        !this.data[key] ||
+        !data ||
         (action === "PUSH" &&
-          route.dataKey &&
-          this.state.keys[route.dataKey] !== keys[route.dataKey])
+          branchItem.route.dataKey &&
+          this.state.keys[branchItem.route.dataKey] !== keys[branchItem.route.dataKey])
       )
     })
     this.merge(i, {
       keys,
-      matches,
       pathname,
-      location,
       abortController,
       loading: true,
     })
 
     try {
       const [loadedData] = await Promise.all([
-        loadBranchDataObject(this, diffedMatches, abortController),
-        loadBranchComponents(matches),
+        loadBranchDataObject(diffedMatches, () => [{ chyk: this, abortController }, this.deps]),
+        loadBranchComponents(branch),
       ])
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData

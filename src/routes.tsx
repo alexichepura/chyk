@@ -1,49 +1,44 @@
-import React, { FC } from "react"
+import React, { createContext, FC, useContext } from "react"
 import { Route, Switch } from "react-router"
+import { Chyk } from "./chyk"
 import { TRouteConfig } from "./match"
-import { useChyk } from "./render"
+
+type TRouteProps<T = any> = {
+  data: T
+  route: TRouteConfig
+}
+export const RouteDataContext = createContext<TRouteProps>((null as any) as TRouteProps)
+export function useRoute<T>(): TRouteProps<T> {
+  return useContext(RouteDataContext)
+}
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]
-  extraProps?: any
-  switchProps?: any
+  chyk: Chyk<any>
 }
-export const DataRoutes: FC<TDataRoutesProps> = ({ routes, extraProps = {}, switchProps = {} }) => {
-  const chyk = useChyk()
+export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
   return (
-    <Switch {...switchProps}>
+    <Switch>
       {routes.map((route, i) => {
-        const matchKey = route.dataKey && chyk.state.keys[route.dataKey]
-        const matchData = matchKey && chyk.data[matchKey]
+        const key = route.dataKey && chyk.state.keys[route.dataKey]
+        const data = key && chyk.data[key]
         return (
           <Route
             key={route.key || i}
             path={route.path}
             exact={route.exact}
             strict={route.strict}
-            render={(props) =>
-              (route.render &&
-                route.render({
-                  ...props,
-                  ...extraProps,
-                  ...matchData,
-                  route: route,
-                  abortController: chyk.state.abortController,
-                })) ||
-              (route.component && (
-                <route.component
-                  {...props}
-                  {...extraProps}
-                  {...matchData}
-                  route={route}
-                  abortController={chyk.state.abortController}
-                />
-              ))
-            }
+            render={(props) => {
+              return (
+                <RouteDataContext.Provider value={{ data, route }}>
+                  {(route.render && route.render(props)) ||
+                    (route.component && <route.component {...props} />)}{" "}
+                </RouteDataContext.Provider>
+              )
+            }}
           />
         )
       })}
     </Switch>
   )
 }
-DataRoutes.displayName = "DataRoutes"

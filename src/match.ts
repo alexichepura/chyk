@@ -1,49 +1,31 @@
-import { match, RouteComponentProps } from "react-router"
-import { MatchedRoute, RouteConfig } from "react-router-config"
+import { RouteConfig } from "react-router-config"
 import { isAsyncComponent, TAsyncComponent } from "./async-component"
-import { Chyk } from "./chyk"
-
-type TLoadDataProps<M> = {
-  chyk: Chyk
-  match: match<M>
-  abortController: AbortController
-}
-export type TLocationData = Record<string, any>
-export type TLoadDataResult<D = TLocationData> = D
-export type TLoadData<D, M, Deps> = (
-  options: TLoadDataProps<M>,
-  deps: Deps
-) => Promise<TLoadDataResult<D>>
+import { TBranchItem } from "./chyk"
 
 export type TRouteConfig = RouteConfig & {
-  loadData?: TLoadData<any, any, any>
+  loadData?: (...args: any) => void
   dataKey?: string
   routes?: TRouteConfig[]
   abortController?: AbortController
 }
-
-export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
-  route: TRouteConfig
-  abortController?: AbortController
-} & D
 
 type TPromiseConfig = {
   dataKey: string
   promise: Promise<any>
 }
 
+type TLoadDataResult = any
 export const loadBranchDataObject = async (
-  chyk: Chyk,
-  matches: MatchedRoute<{}>[],
-  abortController: AbortController
+  branches: TBranchItem[],
+  loaderProps: () => any[]
 ): Promise<TLoadDataResult> => {
-  const promisesConfig: TPromiseConfig[] = matches
+  const promisesConfig: TPromiseConfig[] = branches
     .map(
-      ({ route, match }: { route: TRouteConfig; match: match<any> }): TPromiseConfig => {
-        return route.loadData
+      (b: TBranchItem): TPromiseConfig => {
+        return b.route.loadData
           ? {
-              dataKey: getKey(route.dataKey, match.url),
-              promise: route.loadData({ chyk, match, abortController }, chyk.deps),
+              dataKey: getKey(b.route.dataKey, b.matchUrl),
+              promise: b.route.loadData(...loaderProps()),
             }
           : (Promise.resolve(null) as any)
       }
@@ -58,9 +40,9 @@ export const loadBranchDataObject = async (
   return resultsObject
 }
 
-export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React.ComponentType[]> {
+export function loadBranchComponents(branches: TBranchItem[]): Promise<React.ComponentType[]> {
   return Promise.all(
-    matches.map((match) => {
+    branches.map((match) => {
       const component = match.route.component as React.ComponentType | TAsyncComponent
       if (isAsyncComponent(component)) {
         return component.load()
@@ -73,11 +55,13 @@ export function loadBranchComponents(matches: MatchedRoute<{}>[]): Promise<React
 export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>
   k1 && k2 ? k1 + ":" + k2 : undefined
 
-export const matchesRoutesKeys = (matches: MatchedRoute<{}>[]) =>
+export const getBranchesKeys = (matches: TBranchItem[]) =>
   matches.reduce<Record<string, string>>((p, c) => {
-    const key = getKey(c.route.dataKey, c.match.url)
-    if (key) {
-      p[c.route.dataKey] = key
+    if (c.route.dataKey) {
+      const key = getKey(c.route.dataKey, c.matchUrl)
+      if (key) {
+        p[c.route.dataKey] = key
+      }
     }
     return p
   }, {})
