@@ -3,8 +3,8 @@ import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
 import { Chyk, useChyk } from "../src"
 import { TBranchItem } from "../src/chyk"
-import { TRouteConfig } from "../src/match"
-import { DataRoutes, useRoute } from "../src/routes"
+import { TRouteComponentProps, TRouteConfig } from "../src/match"
+import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
 export type TAppBranchItem = TBranchItem & { match: match }
@@ -43,11 +43,8 @@ export type TLayoutData = {
   year: number
   articles: TArticle[]
 }
-export const Layout: FC = () => {
-  const {
-    data: { articles, year },
-    route,
-  } = useRoute<TLayoutData>()
+type TLayoutProps = TRouteComponentProps<TLayoutData>
+export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
   return (
     <div>
@@ -99,10 +96,11 @@ export const Layout: FC = () => {
     </div>
   )
 }
-const layoutLoader: TLoadData<TLayoutData> = async (p, d) => {
+const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSdk }) => {
+  console.log("layoutLoader")
   const [year, articles] = await Promise.all([
-    d.apiSdk.getYear(p.abortController.signal),
-    d.apiSdk.getArticles(p.abortController.signal),
+    apiSdk.getYear(abortController.signal),
+    apiSdk.getArticles(abortController.signal),
   ])
   return { year, articles }
 }
@@ -111,27 +109,20 @@ const layoutLoader: TLoadData<TLayoutData> = async (p, d) => {
 export type THomeData = {
   articles: TArticle[]
 }
-export const Home: FC = () => {
-  const r = useRoute<THomeData>()
-  console.log("r", r)
-  const {
-    data: { articles },
-  } = useRoute<THomeData>()
-  return (
+type THomeProps = TRouteComponentProps<THomeData>
+export const Home: FC<THomeProps> = ({ articles }) => (
+  <div>
+    <h1>Page Home</h1>
     <div>
-      <h1>Page Home</h1>
+      <h2>Articles</h2>
       <div>
-        <h2>Articles</h2>
-        <div>
-          {articles.map((a) => (
-            <div key={a.slug}>{a.title}</div>
-          ))}
-        </div>
+        {articles.map((a) => (
+          <div key={a.slug}>{a.title}</div>
+        ))}
       </div>
     </div>
-  )
-}
-
+  </div>
+)
 const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk }) => {
   console.log("homeLoader")
   const articles = await apiSdk.getArticles(abortController.signal)
@@ -139,23 +130,22 @@ const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk })
 }
 
 // ARTICLE
+type TArticleMatchParams = { slug: string }
+type TArticleProps = TRouteComponentProps<TArticleData, TArticleMatchParams>
 export type TArticleData = {
   article: TArticle
 }
-export const Article: FC = () => {
-  const {
-    data: { article },
-  } = useRoute<TArticleData>()
+export const Article: FC<TArticleProps> = (props) => {
   return (
     <div>
-      <h1>Page {article.title}</h1>
-      <article>{article.content}</article>
+      <h1>Page {props.article.title}</h1>
+      <article>{props.article.content}</article>
     </div>
   )
 }
 
-const articleLoader: TLoadData<TArticleData | null> = async (
-  { abortController, chyk, match },
+const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async (
+  { abortController, match, chyk },
   { apiSdk }
 ) => {
   console.log("articleLoader", match.params.slug)
@@ -168,21 +158,16 @@ const articleLoader: TLoadData<TArticleData | null> = async (
 }
 
 // LongLoading
+type TLongLoadingProps = TRouteComponentProps<TLongLoadingData>
 export type TLongLoadingData = {
   longLoadingData: string
 }
-export const LongLoading: FC = () => {
-  const {
-    data: { longLoadingData },
-  } = useRoute<TLongLoadingData>()
-  return (
-    <div>
-      <h1>Long Loading (abort controller)</h1>
-      <article>{longLoadingData}</article>
-    </div>
-  )
-}
-
+export const LongLoading: FC<TLongLoadingProps> = ({ longLoadingData }) => (
+  <div>
+    <h1>Long Loading (abort controller)</h1>
+    <article>{longLoadingData}</article>
+  </div>
+)
 const longLoadingLoader: TLoadData<Partial<TLongLoadingData>> = async (
   { abortController },
   { apiSdk }

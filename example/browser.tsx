@@ -12,7 +12,6 @@ const init = async () => {
   const history = createBrowserHistory()
   const deps = { apiSdk: new DbClient() }
   const chyk: Chyk = new Chyk({
-    getBranch: getBranch,
     branchItemsMapper: (branchItem, abortController) =>
       createBranchItemMapper(chyk, deps)(branchItem as TAppBranchItem, abortController),
     data: window.ssr_data,
@@ -27,7 +26,7 @@ const init = async () => {
   render(
     <ChykContext.Provider value={chyk}>
       <Router history={history}>
-        <Preloader>
+        <Preloader routes={routes} getBranch={getBranch}>
           <DataRoutes routes={routes} chyk={chyk} />
         </Preloader>
       </Router>

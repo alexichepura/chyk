@@ -1,7 +1,7 @@
 import { Action, Location } from "history"
 import { ComponentType } from "react"
 import {
-  getBranchesKeys,
+  getBranchKeys,
   getKey,
   loadBranchComponents,
   loadBranchDataObject,
@@ -22,7 +22,7 @@ export type TState = {
 }
 export type TStates = TState[]
 
-type TGetBranch = (routes: TRouteConfig[], pathname: string) => TBranchItem[]
+export type TGetBranch = (routes: TRouteConfig[], pathname: string) => TBranchItem[]
 type TBranchItemsMapper<BI extends TBranchItem = TBranchItem> = (
   branchItem: BI,
   abortController: AbortController
@@ -31,7 +31,6 @@ type TBranchItemsMapper<BI extends TBranchItem = TBranchItem> = (
 type TChykProps = {
   data?: Record<string, any>
   statusCode?: TStatusCode
-  getBranch: TGetBranch
   branchItemsMapper: TBranchItemsMapper
   onLoadError?: (err: Error) => void
 }
@@ -40,7 +39,6 @@ export class Chyk {
   onLoadError: (err: Error) => void = (err) => {
     throw err
   }
-  getBranches: TGetBranch
   branchItemsMapper: TBranchItemsMapper
   component?: ComponentType
   get loading(): boolean {
@@ -58,7 +56,6 @@ export class Chyk {
   }
 
   constructor(props: TChykProps) {
-    this.getBranches = props.getBranch
     this.branchItemsMapper = props.branchItemsMapper
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
@@ -82,7 +79,7 @@ export class Chyk {
         ? new AbortController()
         : ({ signal: { aborted: false } } as AbortController)
 
-    const keys = getBranchesKeys(branch)
+    const keys = getBranchKeys(branch)
 
     if (i === 0) {
       this.merge(0, { keys })
@@ -115,7 +112,6 @@ export class Chyk {
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData
       })
-      console.log("this.data", this.data)
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error

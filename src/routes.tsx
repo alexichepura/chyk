@@ -1,18 +1,7 @@
-import React, { createContext, FC, useContext } from "react"
+import React, { FC } from "react"
 import { Route, Switch } from "react-router"
 import { Chyk } from "./chyk"
 import { TRouteConfig } from "./match"
-
-type TRouteProps<T = any> = {
-  data: T
-  route: TRouteConfig
-}
-export const RouteDataContext = createContext<TRouteProps>((null as any) as TRouteProps)
-export function useRoute<T>(): TRouteProps<T> {
-  const r = useContext(RouteDataContext)
-  console.log("useRoute", r)
-  return r
-}
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]
@@ -24,21 +13,23 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
       {routes.map((route, i) => {
         const key = route.dataKey && chyk.state.keys[route.dataKey]
         const data = key && chyk.data[key]
-        console.log("datakey", route.dataKey, key, data)
         return (
           <Route
             key={route.key || i}
             path={route.path}
             exact={route.exact}
             strict={route.strict}
-            render={(props) => {
-              return (
-                <RouteDataContext.Provider value={{ data, route }}>
-                  {route.render
-                    ? route.render(props)
-                    : route.component && <route.component {...props} />}
-                </RouteDataContext.Provider>
-              )
+            render={(_props) => {
+              const props = {
+                ..._props,
+                ...data,
+                route: route,
+                abortController: chyk.state.abortController,
+              }
+              console.log("Route render", chyk.state.keys, route.dataKey, key, data)
+              return route.render
+                ? route.render(props)
+                : route.component && <route.component {...props} />
             }}
           />
         )

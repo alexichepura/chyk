@@ -1,3 +1,4 @@
+import { RouteComponentProps } from "react-router"
 import { RouteConfig } from "react-router-config"
 import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { TBranchItem } from "./chyk"
@@ -8,6 +9,11 @@ export type TRouteConfig = RouteConfig & {
   routes?: TRouteConfig[]
   abortController?: AbortController
 }
+
+export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
+  route: TRouteConfig
+  abortController?: AbortController
+} & D
 
 type TPromiseConfig = {
   dataKey: string
@@ -57,7 +63,7 @@ export function loadBranchComponents(branches: TBranchItem[]): Promise<React.Com
 export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>
   k1 && k2 ? k1 + ":" + k2 : undefined
 
-export const getBranchesKeys = (matches: TBranchItem[]) =>
+export const getBranchKeys = (matches: TBranchItem[]) =>
   matches.reduce<Record<string, string>>((p, c) => {
     if (c.route.dataKey) {
       const key = getKey(c.route.dataKey, c.matchUrl)

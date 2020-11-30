@@ -20,7 +20,6 @@ const server = createServer(async (request, response) => {
     } else {
       const deps = { apiSdk: new DbClient() }
       const chyk: Chyk = new Chyk({
-        getBranch: getBranch,
         branchItemsMapper: (branchItem, abortController) => {
           return createBranchItemMapper(chyk, deps)(branchItem as TAppBranchItem, abortController)
         },
