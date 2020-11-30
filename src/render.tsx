@@ -4,7 +4,7 @@ import { Chyk } from "./chyk"
 import { useRoute } from "./routes"
 
 export const ChykContext = createContext((null as any) as Chyk)
-export function useChyk<D = any>(): Chyk<D> {
+export function useChyk(): Chyk {
   return useContext(ChykContext)
 }
 

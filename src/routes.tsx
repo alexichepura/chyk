@@ -9,12 +9,14 @@ type TRouteProps<T = any> = {
 }
 export const RouteDataContext = createContext<TRouteProps>((null as any) as TRouteProps)
 export function useRoute<T>(): TRouteProps<T> {
-  return useContext(RouteDataContext)
+  const r = useContext(RouteDataContext)
+  console.log("useRoute", r)
+  return r
 }
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]
-  chyk: Chyk<any>
+  chyk: Chyk
 }
 export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
   return (
@@ -22,6 +24,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
       {routes.map((route, i) => {
         const key = route.dataKey && chyk.state.keys[route.dataKey]
         const data = key && chyk.data[key]
+        console.log("datakey", route.dataKey, key, data)
         return (
           <Route
             key={route.key || i}
@@ -31,8 +34,9 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
             render={(props) => {
               return (
                 <RouteDataContext.Provider value={{ data, route }}>
-                  {(route.render && route.render(props)) ||
-                    (route.component && <route.component {...props} />)}{" "}
+                  {route.render
+                    ? route.render(props)
+                    : route.component && <route.component {...props} />}
                 </RouteDataContext.Provider>
               )
             }}

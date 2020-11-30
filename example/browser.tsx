@@ -5,14 +5,16 @@ import { Router } from "react-router"
 import { DataRoutes } from "../src"
 import { Chyk } from "../src/chyk"
 import { ChykContext, Preloader } from "../src/render"
-import { getBranches, routes, TDeps } from "./app"
+import { createBranchItemMapper, getBranch, routes, TAppBranchItem } from "./app"
 import { DbClient } from "./db"
 
 const init = async () => {
   const history = createBrowserHistory()
-  const lib = new Chyk<TDeps>({
-    getBranches,
-    deps: { apiSdk: new DbClient() },
+  const deps = { apiSdk: new DbClient() }
+  const chyk: Chyk = new Chyk({
+    getBranch: getBranch,
+    branchItemsMapper: (branchItem, abortController) =>
+      createBranchItemMapper(chyk, deps)(branchItem as TAppBranchItem, abortController),
     data: window.ssr_data,
     statusCode: window.ssr_statusCode,
     onLoadError: (err) => {
@@ -20,13 +22,13 @@ const init = async () => {
     },
   })
   const { pathname } = history.location
-  await lib.loadData(getBranches(routes, pathname), pathname)
+  await chyk.loadData(getBranch(routes, pathname), pathname)
   const el = document.getElementById("app")
   render(
-    <ChykContext.Provider value={lib}>
+    <ChykContext.Provider value={chyk}>
       <Router history={history}>
         <Preloader>
-          <DataRoutes routes={routes} chyk={lib} />
+          <DataRoutes routes={routes} chyk={chyk} />
         </Preloader>
       </Router>
     </ChykContext.Provider>,

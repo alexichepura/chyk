@@ -7,13 +7,19 @@ import { TRouteConfig } from "../src/match"
 import { DataRoutes, useRoute } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
-export const getBranches = (
-  routes: TRouteConfig[] | undefined,
-  pathname: string
-): TBranchItem[] => {
-  const matches = matchRoutes(routes || [], pathname)
-  return matches.map((m) => ({ route: m.route, matchUrl: m.match.url }))
-}
+export type TAppBranchItem = TBranchItem & { match: match }
+
+export const getBranch = (routes: TRouteConfig[], pathname: string): TAppBranchItem[] =>
+  matchRoutes(routes, pathname).map((m) => ({
+    route: m.route,
+    matchUrl: m.match.url,
+    match: m.match,
+  }))
+
+export const createBranchItemMapper = (chyk: Chyk, deps: TDeps) => (
+  branchItem: TAppBranchItem,
+  abortController: AbortController
+): [TLoadDataProps<{}>, TDeps] => [{ chyk, abortController, match: branchItem.match }, deps]
 
 type TLoadDataProps<M> = {
   chyk: Chyk
@@ -93,11 +99,10 @@ export const Layout: FC = () => {
     </div>
   )
 }
-const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSdk }) => {
-  console.log("layoutLoader")
+const layoutLoader: TLoadData<TLayoutData> = async (p, d) => {
   const [year, articles] = await Promise.all([
-    apiSdk.getYear(abortController.signal),
-    apiSdk.getArticles(abortController.signal),
+    d.apiSdk.getYear(p.abortController.signal),
+    d.apiSdk.getArticles(p.abortController.signal),
   ])
   return { year, articles }
 }
@@ -107,6 +112,8 @@ export type THomeData = {
   articles: TArticle[]
 }
 export const Home: FC = () => {
+  const r = useRoute<THomeData>()
+  console.log("r", r)
   const {
     data: { articles },
   } = useRoute<THomeData>()

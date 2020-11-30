@@ -22,22 +22,26 @@ export type TState = {
 }
 export type TStates = TState[]
 
-type TGetBranch = (routes: TRouteConfig[] | undefined, pathname: string) => TBranchItem[]
+type TGetBranch = (routes: TRouteConfig[], pathname: string) => TBranchItem[]
+type TBranchItemsMapper<BI extends TBranchItem = TBranchItem> = (
+  branchItem: BI,
+  abortController: AbortController
+) => any
 
-type TChykProps<D = any> = {
+type TChykProps = {
   data?: Record<string, any>
   statusCode?: TStatusCode
-  deps: D extends undefined ? never : D
-  getBranches: TGetBranch
+  getBranch: TGetBranch
+  branchItemsMapper: TBranchItemsMapper
   onLoadError?: (err: Error) => void
 }
 
-export class Chyk<D = any> {
+export class Chyk {
   onLoadError: (err: Error) => void = (err) => {
     throw err
   }
-  deps: D extends undefined ? never : D
   getBranches: TGetBranch
+  branchItemsMapper: TBranchItemsMapper
   component?: ComponentType
   get loading(): boolean {
     return this.states.some((state) => state.loading)
@@ -53,9 +57,9 @@ export class Chyk<D = any> {
     return this.state.statusCode === 404
   }
 
-  constructor(props: TChykProps<D>) {
-    this.deps = props.deps
-    this.getBranches = props.getBranches
+  constructor(props: TChykProps) {
+    this.getBranches = props.getBranch
+    this.branchItemsMapper = props.branchItemsMapper
     if (props.onLoadError) {
       this.onLoadError = props.onLoadError
     }
@@ -102,12 +106,16 @@ export class Chyk<D = any> {
 
     try {
       const [loadedData] = await Promise.all([
-        loadBranchDataObject(diffedMatches, () => [{ chyk: this, abortController }, this.deps]),
+        loadBranchDataObject(diffedMatches, (branchItem) => {
+          console.log()
+          return this.branchItemsMapper(branchItem, abortController)
+        }),
         loadBranchComponents(branch),
       ])
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData
       })
+      console.log("this.data", this.data)
     } catch (err) {
       if (err.name === "AbortError") {
         // request was aborted, so we don't care about this error

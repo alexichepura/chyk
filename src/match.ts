@@ -3,7 +3,7 @@ import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { TBranchItem } from "./chyk"
 
 export type TRouteConfig = RouteConfig & {
-  loadData?: (...args: any) => void
+  loadData?: (...args: any) => Promise<any>
   dataKey?: string
   routes?: TRouteConfig[]
   abortController?: AbortController
@@ -15,19 +15,21 @@ type TPromiseConfig = {
 }
 
 type TLoadDataResult = any
-export const loadBranchDataObject = async (
+export async function loadBranchDataObject(
   branches: TBranchItem[],
-  loaderProps: () => any[]
-): Promise<TLoadDataResult> => {
+  branchItemsMapper: (branchItem: TBranchItem) => any[]
+): Promise<TLoadDataResult> {
   const promisesConfig: TPromiseConfig[] = branches
     .map(
-      (b: TBranchItem): TPromiseConfig => {
-        return b.route.loadData
-          ? {
-              dataKey: getKey(b.route.dataKey, b.matchUrl),
-              promise: b.route.loadData(...loaderProps()),
-            }
-          : (Promise.resolve(null) as any)
+      (branchItem: TBranchItem): TPromiseConfig => {
+        if (branchItem.route.loadData) {
+          const loaderArgs = branchItemsMapper(branchItem)
+          return {
+            dataKey: getKey(branchItem.route.dataKey, branchItem.matchUrl) || "",
+            promise: branchItem.route.loadData(...loaderArgs),
+          }
+        }
+        return Promise.resolve(null) as any
       }
     )
     .filter(Boolean)

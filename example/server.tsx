@@ -5,7 +5,7 @@ import { renderToString } from "react-dom/server"
 import { StaticRouter } from "react-router"
 import { ChykContext, DataRoutes } from "../src"
 import { Chyk } from "../src/chyk"
-import { getBranches, routes, TDeps } from "./app"
+import { createBranchItemMapper, getBranch, routes, TAppBranchItem } from "./app"
 import { DbClient } from "./db"
 import { env } from "./env"
 
@@ -18,8 +18,14 @@ const server = createServer(async (request, response) => {
       response.statusCode = 200
       response.end(template({ html: "", data: null, statusCode: 200 }))
     } else {
-      const chyk = new Chyk<TDeps>({ getBranches, deps: { apiSdk: new DbClient() } })
-      await chyk.loadData(getBranches(routes, pathname), pathname)
+      const deps = { apiSdk: new DbClient() }
+      const chyk: Chyk = new Chyk({
+        getBranch: getBranch,
+        branchItemsMapper: (branchItem, abortController) => {
+          return createBranchItemMapper(chyk, deps)(branchItem as TAppBranchItem, abortController)
+        },
+      })
+      await chyk.loadData(getBranch(routes, pathname), pathname)
       const html = renderToString(
         <ChykContext.Provider value={chyk}>
           <StaticRouter location={chyk.state.location}>
