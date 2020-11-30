@@ -49,16 +49,15 @@ function delayWithSignal(ms: number = 10, signal: AbortSignal) {
   }
 
   return new Promise((resolve, reject) => {
-    // Something fake async
     const timeout = setTimeout(resolve, ms, "Promise Resolved")
+    if (!("AbortSignal" in global)) return
 
-    if (typeof window === "undefined") {
-      return
-    }
-    // Listen for abort event on signal
-    signal.addEventListener("abort", () => {
+    const once = () => {
+      console.log(`signal got "abort" event`, signal)
       clearTimeout(timeout)
       reject(new DOMException("Aborted", "AbortError"))
-    })
+      signal.removeEventListener("abort", once)
+    }
+    signal.addEventListener("abort", once)
   })
 }
