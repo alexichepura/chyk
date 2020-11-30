@@ -2,14 +2,14 @@ import React, { FC } from "react"
 import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
 import { Chyk, useChyk } from "../src"
-import { TBranchItem } from "../src/chyk"
+import { TBranchItem, TGetBranch } from "../src/chyk"
 import { TRouteComponentProps, TRouteConfig } from "../src/match"
 import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
 
 export type TAppBranchItem = TBranchItem & { match: match }
 
-export const getBranch = (routes: TRouteConfig[], pathname: string): TAppBranchItem[] =>
+export const getBranch: TGetBranch = (routes, pathname) =>
   matchRoutes(routes, pathname).map((m) => ({
     route: m.route,
     matchUrl: m.match.url,
@@ -46,6 +46,9 @@ export type TLayoutData = {
 type TLayoutProps = TRouteComponentProps<TLayoutData>
 export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
   const chyk = useChyk()
+  if (!route.routes) {
+    throw new Error("no routes")
+  }
   return (
     <div>
       <header>
@@ -82,11 +85,7 @@ export const Layout: FC<TLayoutProps> = ({ route, year, articles }) => {
         </div>
       </header>
       <main style={{ marginBottom: "1000px" }}>
-        {chyk.is404 ? (
-          <NotFound />
-        ) : (
-          route.routes && <DataRoutes routes={route.routes} chyk={chyk} />
-        )}
+        {chyk.is404 ? <NotFound /> : <DataRoutes routes={route.routes} chyk={chyk} />}
       </main>
       <div id="hash1" style={{ marginBottom: "1000px" }}>
         hash1

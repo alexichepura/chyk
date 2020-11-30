@@ -25,6 +25,7 @@ const server = createServer(async (request, response) => {
         },
       })
       await chyk.loadData(getBranch(routes, pathname), pathname)
+      console.log("server", chyk.state.location)
       const html = renderToString(
         <ChykContext.Provider value={chyk}>
           <StaticRouter location={chyk.state.location}>

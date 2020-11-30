@@ -8,6 +8,7 @@ type TDataRoutesProps = {
   chyk: Chyk
 }
 export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
+  console.log("DataRoutes", routes.length, chyk.state.location)
   return (
     <Switch>
       {routes.map((route, i) => {
@@ -26,7 +27,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
                 route: route,
                 abortController: chyk.state.abortController,
               }
-              console.log("Route render", chyk.state.keys, route.dataKey, key, data)
+              // console.log("Route render", chyk.state.keys, route.dataKey, key, data)
               return route.render
                 ? route.render(props)
                 : route.component && <route.component {...props} />

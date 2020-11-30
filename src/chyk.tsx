@@ -1,4 +1,4 @@
-import { Action, Location } from "history"
+import { Action, createLocation, Location } from "history"
 import { ComponentType } from "react"
 import {
   getBranchKeys,
@@ -73,6 +73,7 @@ export class Chyk {
   }
 
   loadData = async (branch: TBranchItem[], pathname: string, action?: Action): Promise<boolean> => {
+    const location = createLocation(pathname)
     const i = this.i + 1
     const abortController =
       "AbortController" in global
@@ -82,7 +83,7 @@ export class Chyk {
     const keys = getBranchKeys(branch)
 
     if (i === 0) {
-      this.merge(0, { keys })
+      this.merge(0, { location, keys })
     }
     const diffedMatches = branch.filter((branchItem) => {
       const key = getKey(branchItem.route.dataKey, branchItem.matchUrl)
@@ -96,6 +97,7 @@ export class Chyk {
     })
     this.merge(i, {
       keys,
+      location,
       pathname,
       abortController,
       loading: true,
