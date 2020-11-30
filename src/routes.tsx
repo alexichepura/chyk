@@ -1,7 +1,7 @@
 import React, { FC } from "react"
 import { Route, Switch } from "react-router"
+import { TRouteConfig } from "./branch"
 import { Chyk } from "./chyk"
-import { TRouteConfig } from "./match"
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]

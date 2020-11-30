@@ -4,8 +4,8 @@ import { render } from "react-dom"
 import { Router } from "react-router"
 import { DataRoutes } from "../src"
 import { Chyk } from "../src/chyk"
-import { ChykContext, Preloader } from "../src/render"
-import { createBranchItemMapper, getBranch, routes, TAppBranchItem } from "./app"
+import { Preloader } from "../src/preloader"
+import { ChykContext, createBranchItemMapper, getBranch, routes, TAppBranchItem } from "./app"
 import { DbClient } from "./db"
 
 const init = async () => {
@@ -26,7 +26,7 @@ const init = async () => {
   render(
     <ChykContext.Provider value={chyk}>
       <Router history={history}>
-        <Preloader routes={routes} getBranch={getBranch}>
+        <Preloader routes={routes} getBranch={getBranch} chyk={chyk}>
           <DataRoutes routes={routes} chyk={chyk} />
         </Preloader>
       </Router>

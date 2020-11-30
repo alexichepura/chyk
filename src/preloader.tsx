@@ -1,15 +1,9 @@
-import React, { createContext, FC, useContext, useEffect, useState } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { Route, useHistory } from "react-router"
+import { TRouteConfig } from "./branch"
 import { Chyk, TGetBranch } from "./chyk"
-import { TRouteConfig } from "./match"
 
-export const ChykContext = createContext((null as any) as Chyk)
-export function useChyk(): Chyk {
-  return useContext(ChykContext)
-}
-
-const usePreloader = (routes: TRouteConfig[], getBranch: TGetBranch) => {
-  const chyk = useChyk()
+const usePreloader = (chyk: Chyk, routes: TRouteConfig[], getBranch: TGetBranch) => {
   const history = useHistory()
   const [, set_render_location] = useState(chyk.state.location)
 
@@ -25,11 +19,12 @@ const usePreloader = (routes: TRouteConfig[], getBranch: TGetBranch) => {
   return chyk.state.location
 }
 
-export const Preloader: FC<{ routes: TRouteConfig[]; getBranch: TGetBranch }> = ({
+export const Preloader: FC<{ chyk: Chyk; routes: TRouteConfig[]; getBranch: TGetBranch }> = ({
   children,
+  chyk,
   routes,
   getBranch,
 }) => {
-  const render_location = usePreloader(routes, getBranch)
+  const render_location = usePreloader(chyk, routes, getBranch)
   return <Route location={render_location} render={() => children} />
 }

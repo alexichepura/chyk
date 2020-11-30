@@ -1,6 +1,5 @@
 import { RouteComponentProps } from "react-router"
 import { RouteConfig } from "react-router-config"
-import { isAsyncComponent, TAsyncComponent } from "./async-component"
 import { TBranchItem } from "./chyk"
 
 export type TRouteConfig = RouteConfig & {
@@ -46,18 +45,6 @@ export async function loadBranchDataObject(
     return prev
   }, {} as Record<string, TLoadDataResult>)
   return resultsObject
-}
-
-export function loadBranchComponents(branches: TBranchItem[]): Promise<React.ComponentType[]> {
-  return Promise.all(
-    branches.map((match) => {
-      const component = match.route.component as React.ComponentType | TAsyncComponent
-      if (isAsyncComponent(component)) {
-        return component.load()
-      }
-      return component
-    })
-  )
 }
 
 export const getKey = (k1: string | undefined, k2: string | undefined): string | undefined =>

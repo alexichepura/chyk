@@ -1,12 +1,6 @@
 import { Action, createLocation, Location } from "history"
 import { ComponentType } from "react"
-import {
-  getBranchKeys,
-  getKey,
-  loadBranchComponents,
-  loadBranchDataObject,
-  TRouteConfig,
-} from "./match"
+import { getBranchKeys, getKey, loadBranchDataObject, TRouteConfig } from "./branch"
 
 export type TStatusCode = number
 export type TBranchItem = { route: TRouteConfig; matchUrl: string }
@@ -106,10 +100,9 @@ export class Chyk {
     try {
       const [loadedData] = await Promise.all([
         loadBranchDataObject(diffedMatches, (branchItem) => {
-          console.log()
           return this.branchItemsMapper(branchItem, abortController)
         }),
-        loadBranchComponents(branch),
+        // loadBranchComponents(branch),
       ])
       Object.entries(loadedData).forEach(([key, matchData]) => {
         this.data[key] = matchData

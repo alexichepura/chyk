@@ -1,11 +1,16 @@
-import React, { FC } from "react"
+import React, { createContext, FC, useContext } from "react"
 import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
 import { Chyk, useChyk } from "../src"
+import { TRouteComponentProps, TRouteConfig } from "../src/branch"
 import { TBranchItem, TGetBranch } from "../src/chyk"
-import { TRouteComponentProps, TRouteConfig } from "../src/match"
 import { DataRoutes } from "../src/routes"
 import { DbClient, TArticle } from "./db"
+
+export const ChykContext = createContext((null as any) as Chyk)
+export function useChyk(): Chyk {
+  return useContext(ChykContext)
+}
 
 export type TAppBranchItem = TBranchItem & { match: match }
 
