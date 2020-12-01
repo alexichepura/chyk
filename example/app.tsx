@@ -3,9 +3,8 @@ import { RouteComponentProps } from "react-router"
 import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
 import { Chyk } from "../src"
-import { TRouteConfig } from "../src/branch"
 import { TBranchItem, TGetBranch } from "../src/chyk"
-import { DataRoutes } from "../src/react-router"
+import { DataRoutes, TRouteConfig } from "../src/react-router"
 import { DbClient, TArticle } from "./db"
 
 export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {

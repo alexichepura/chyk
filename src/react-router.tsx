@@ -1,7 +1,14 @@
 import React, { FC, useEffect, useState } from "react"
 import { Route, Switch, useHistory } from "react-router"
-import { TRouteConfig } from "./branch"
+import { RouteConfig } from "react-router-config"
 import { Chyk, TGetBranch } from "./chyk"
+
+export type TRouteConfig = RouteConfig & {
+  loadData?: (...args: any) => Promise<any>
+  dataKey?: string
+  routes?: TRouteConfig[]
+  abortController?: AbortController
+}
 
 type TDataRoutesProps = {
   routes: TRouteConfig[]
