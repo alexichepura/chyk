@@ -1,12 +1,17 @@
 import React, { createContext, FC, useContext } from "react"
+import { RouteComponentProps } from "react-router"
 import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
-import { Chyk, useChyk } from "../src"
-import { TRouteComponentProps, TRouteConfig } from "../src/branch"
+import { Chyk } from "../src"
+import { TRouteConfig } from "../src/branch"
 import { TBranchItem, TGetBranch } from "../src/chyk"
-import { DataRoutes } from "../src/routes"
+import { DataRoutes } from "../src/react-router"
 import { DbClient, TArticle } from "./db"
 
+export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
+  route: TRouteConfig
+  abortController?: AbortController
+} & D
 export const ChykContext = createContext((null as any) as Chyk)
 export function useChyk(): Chyk {
   return useContext(ChykContext)

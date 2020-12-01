@@ -1,4 +1,3 @@
-import { RouteComponentProps } from "react-router"
 import { RouteConfig } from "react-router-config"
 import { TBranchItem } from "./chyk"
 
@@ -8,11 +7,6 @@ export type TRouteConfig = RouteConfig & {
   routes?: TRouteConfig[]
   abortController?: AbortController
 }
-
-export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
-  route: TRouteConfig
-  abortController?: AbortController
-} & D
 
 type TPromiseConfig = {
   dataKey: string
