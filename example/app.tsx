@@ -10,12 +10,12 @@ import { DbClient, TArticle } from "./db"
 type TAppRouteConfig = TRouteConfig & {
   routes?: TAppRouteConfig[]
 }
-export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
+type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
   route: TReactRouterRouteConfig & TAppRouteConfig
   abortController?: AbortController
 } & D
 export const ChykContext = createContext((null as any) as Chyk)
-export function useChyk(): Chyk {
+function useChyk(): Chyk {
   return useContext(ChykContext)
 }
 
@@ -38,9 +38,9 @@ type TLoadDataProps<M> = {
   match: match<M>
   abortController: AbortController
 }
-export type TLocationData = Record<string, any>
-export type TLoadDataResult<D = TLocationData> = D
-export type TChykLoadData<D, M, Deps> = (
+type TLocationData = Record<string, any>
+type TLoadDataResult<D = TLocationData> = D
+type TChykLoadData<D, M, Deps> = (
   options: TLoadDataProps<M>,
   deps: Deps
 ) => Promise<TLoadDataResult<D>>
@@ -51,7 +51,7 @@ type TLoadData<T, M = any> = TChykLoadData<T, M, TDeps>
 const link_style: React.CSSProperties = { marginLeft: "1rem" }
 
 // LAYOUT
-export type TLayoutData = {
+type TLayoutData = {
   year: number
   articles: TArticle[]
 }
@@ -117,7 +117,7 @@ const layoutLoader: TLoadData<TLayoutData> = async ({ abortController }, { apiSd
 }
 
 // HOME
-export type THomeData = {
+type THomeData = {
   articles: TArticle[]
 }
 type THomeProps = TRouteComponentProps<THomeData>
@@ -143,7 +143,7 @@ const homeLoader: TLoadData<THomeData> = async ({ abortController }, { apiSdk })
 // ARTICLE
 type TArticleMatchParams = { slug: string }
 type TArticleProps = TRouteComponentProps<TArticleData, TArticleMatchParams>
-export type TArticleData = {
+type TArticleData = {
   article: TArticle
 }
 export const Article: FC<TArticleProps> = (props) => {
@@ -170,7 +170,7 @@ const articleLoader: TLoadData<TArticleData | null, TArticleMatchParams> = async
 
 // LongLoading
 type TLongLoadingProps = TRouteComponentProps<TLongLoadingData>
-export type TLongLoadingData = {
+type TLongLoadingData = {
   longLoadingData: string
 }
 export const LongLoading: FC<TLongLoadingProps> = ({ longLoadingData }) => (
