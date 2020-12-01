@@ -3,12 +3,15 @@ import { RouteComponentProps } from "react-router"
 import { matchRoutes } from "react-router-config"
 import { Link, match } from "react-router-dom"
 import { Chyk } from "../src"
-import { TBranchItem, TGetBranch } from "../src/chyk"
-import { DataRoutes, TRouteConfig } from "../src/react-router"
+import { TBranchItem, TRouteConfig } from "../src/chyk"
+import { DataRoutes, TGetBranch, TReactRouterRouteConfig } from "../src/react-router"
 import { DbClient, TArticle } from "./db"
 
+type TAppRouteConfig = TRouteConfig & {
+  routes?: TAppRouteConfig[]
+}
 export type TRouteComponentProps<D, P = any> = RouteComponentProps<P> & {
-  route: TRouteConfig
+  route: TReactRouterRouteConfig & TAppRouteConfig
   abortController?: AbortController
 } & D
 export const ChykContext = createContext((null as any) as Chyk)
@@ -192,7 +195,7 @@ export const NotFound: FC = () => (
   </div>
 )
 
-export const routes: TRouteConfig[] = [
+export const routes: TReactRouterRouteConfig[] = [
   {
     component: Layout as FC,
     dataKey: "layout",

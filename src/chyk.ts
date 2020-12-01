@@ -1,6 +1,10 @@
 import { Action, createLocation, Location } from "history"
-import { ComponentType } from "react"
-import { TRouteConfig } from "./react-router"
+
+export type TRouteConfig = {
+  loadData?: (...args: any) => Promise<any>
+  dataKey?: string
+  routes?: TRouteConfig[]
+}
 
 export type TStatusCode = number
 export type TBranchItem = { route: TRouteConfig; matchUrl: string }
@@ -16,11 +20,7 @@ export type TState = {
 }
 export type TStates = TState[]
 
-export type TGetBranch = (routes: TRouteConfig[], pathname: string) => TBranchItem[]
-type TBranchItemsMapper<BI extends TBranchItem = TBranchItem> = (
-  branchItem: BI,
-  abortController: AbortController
-) => any
+type TBranchItemsMapper = (branchItem: TBranchItem, abortController: AbortController) => any
 
 type TChykProps = {
   data?: Record<string, any>
@@ -34,7 +34,6 @@ export class Chyk {
     throw err
   }
   branchItemsMapper: TBranchItemsMapper
-  component?: ComponentType
   get loading(): boolean {
     return this.states.some((state) => state.loading)
   }

@@ -1,17 +1,13 @@
 import React, { FC, useEffect, useState } from "react"
 import { Route, Switch, useHistory } from "react-router"
 import { RouteConfig } from "react-router-config"
-import { Chyk, TGetBranch } from "./chyk"
+import { Chyk, TBranchItem, TRouteConfig } from "./chyk"
 
-export type TRouteConfig = RouteConfig & {
-  loadData?: (...args: any) => Promise<any>
-  dataKey?: string
-  routes?: TRouteConfig[]
-  abortController?: AbortController
-}
+export type TReactRouterRouteConfig = RouteConfig & TRouteConfig
+export type TGetBranch = (routes: TRouteConfig[], pathname: string) => TBranchItem[]
 
 type TDataRoutesProps = {
-  routes: TRouteConfig[]
+  routes: TReactRouterRouteConfig[]
   chyk: Chyk
 }
 export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
@@ -46,7 +42,7 @@ export const DataRoutes: FC<TDataRoutesProps> = ({ routes, chyk }) => {
   )
 }
 
-const usePreloader = (chyk: Chyk, routes: TRouteConfig[], getBranch: TGetBranch) => {
+const usePreloader = (chyk: Chyk, routes: TReactRouterRouteConfig[], getBranch: TGetBranch) => {
   const history = useHistory()
   const [, set_render_location] = useState(chyk.state.location)
 
@@ -62,12 +58,11 @@ const usePreloader = (chyk: Chyk, routes: TRouteConfig[], getBranch: TGetBranch)
   return chyk.state.location
 }
 
-export const Preloader: FC<{ chyk: Chyk; routes: TRouteConfig[]; getBranch: TGetBranch }> = ({
-  children,
-  chyk,
-  routes,
-  getBranch,
-}) => {
+export const Preloader: FC<{
+  chyk: Chyk
+  routes: TReactRouterRouteConfig[]
+  getBranch: TGetBranch
+}> = ({ children, chyk, routes, getBranch }) => {
   const render_location = usePreloader(chyk, routes, getBranch)
   return <Route location={render_location} render={() => children} />
 }
